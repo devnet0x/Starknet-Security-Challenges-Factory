@@ -1,0 +1,16 @@
+[project]
+protostar-version = "0.9.1"
+lib-path = "lib"
+cairo-path = ["/home/xubuntu/.local/lib/python3.9/site-packages"]
+
+[contracts]
+main = ["main.cairo"]
+challenge1 = ["challenge1.cairo"]
+challenge2 = ["challenge2.cairo"]
+challenge3 = ["challenge3.cairo"]
+challenge4 = ["challenge4.cairo"]
+proxy = ["proxy.cairo"]
+
+[profile.devnet.project]
+gateway-url="http://127.0.0.1:5050/"
+chain-id=123456
