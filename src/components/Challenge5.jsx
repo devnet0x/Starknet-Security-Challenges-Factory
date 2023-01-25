@@ -1,5 +1,5 @@
 import React from 'react';
-import challengeCode from '../assets/challenge2.cairo'
+import challengeCode from '../assets/challenge5.cairo'
 import '../App.css';
 import { useAccount,useConnectors,useStarknetExecute,useTransactionReceipt,
         useStarknetCall,useContract } from '@starknet-react/core';
@@ -50,7 +50,7 @@ function Status(){
     const { data , loading, error, refresh } = useStarknetCall({
         contract,
         method: 'get_challenge_status',
-        args:[address,'2'],
+        args:[address,'5'],
         options: {
             watch: true
         }
@@ -60,7 +60,7 @@ function Status(){
     if (error) return <span>Error: {error}</span>
     return(
         <span>
-        {data && !parseInt(data[0].toString())?<Challenge2Deploy />:<span>Already Resolved</span>}
+        {data && !parseInt(data[0].toString())?<Challenge5Deploy />:<span>Already Resolved</span>}
         </span>
     ) 
 }
@@ -91,7 +91,7 @@ function ConnectWallet() {
   )
 }
 
-function Challenge2Deploy() {
+function Challenge5Deploy() {
 
     const [hash, setHash] = useState(undefined)
     const { data, loading, error } = useTransactionReceipt({ hash, watch: true })
@@ -100,7 +100,7 @@ function Challenge2Deploy() {
       calls: [{
         contractAddress: global.MAIN_CONTRACT_ADDRESS,
         entrypoint: 'deploy_challenge',
-        calldata: ['2']
+        calldata: ['5']
       }]
     })
   
@@ -123,12 +123,12 @@ function Challenge2Deploy() {
         {error && <div>Error: {JSON.stringify(error)}</div>}
         {data && <div><div>Tx.Hash: {hash}</div> <div>Status: {data.status}  </div></div>}      
         {data && (data.status=="ACCEPTED_ON_L2"||data.status=="ACCEPTED_ON_L1") && <div> Challenge contract deployed at address: {newContractAddress} </div>}
-        {data && (data.status=="ACCEPTED_ON_L2"||data.status=="ACCEPTED_ON_L1") && data.events?<div> <Challenge2Check /> </div>:<div></div>}
+        {data && (data.status=="ACCEPTED_ON_L2"||data.status=="ACCEPTED_ON_L1") && data.events?<div> <Challenge5Check /> </div>:<div></div>}
        </>
     )
 }
 
-function Challenge2Check() {
+function Challenge5Check() {
     const [hash, setHash] = useState(undefined)
     const { data, loading, error } = useTransactionReceipt({ hash, watch: true })
 
@@ -136,7 +136,7 @@ function Challenge2Check() {
       calls: [{
         contractAddress: global.MAIN_CONTRACT_ADDRESS,
         entrypoint: 'test_challenge',
-        calldata: ['2']
+        calldata: ['5']
       }]
     })
   
@@ -148,30 +148,30 @@ function Challenge2Check() {
       <>
         <p><button onClick={handleClick}>Check Solution</button></p>
         {error && <div>Error: {JSON.stringify(error)}</div>}
-        {data && <div><div>Tx.Hash: {hash}</div> <div>Status: {data.status}  </div></div>}      
+        {data && <div><div>Tx.Hash: {hash}</div> <div>Status: {data.status}  </div></div>}     
        </>
     )
   }
 
-function Challenge2() {
+
+function Challenge5() {
   const [text, setText] = React.useState();
   fetch(challengeCode)
     .then((response) => response.text())
     .then((textContent) => {
-      setText(textContent);
+      setText(textContent); 
     });
 
-return (
+  return (
     <div className="App" class='flex-table row' role='rowgroup'>
       <div class='flex-row-emp' role='cell'></div>
       
       <div class='flex-row-wide' role='cell'>
         <StarknetConfig connectors={connectors}>
-          <p><font size="+2"><b>CALL ME</b></font></p>
-          To complete this challenge, all you need to do is call a function.<br /><br />
-          The “Begin Challenge” button will deploy the following contract, call the function named 
-          callme and then click the “Check Solution” button.<br /><br />
-          Here’s the code for this challenge:
+          <p><font size="+2"><b>GUESS SECRET NUMBER</b></font></p>
+          Putting the answer in the code makes things a little too easy. 
+          This time I’ve only stored the hash of the number (between 1 and 5000). 
+          Good luck reversing a cryptographic hash!:
           <div align='justify'>
             <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
               {text}
@@ -184,6 +184,7 @@ return (
       <div class='flex-row-emp' role='cell'></div>
     </div>
   );
+
 }
 
-export default Challenge2;
+export default Challenge5;

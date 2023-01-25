@@ -22,7 +22,7 @@ function Navbar() {
           <Link to="#" className="menu-bars">
             <FaIcons.FaBars onClick={showSidebar} />
           </Link>
-          <font color="#FFFFFF"><h1>&nbsp;&nbsp;&nbsp;Security Challenges Factory for Starknet.</h1><pre>&nbsp;&nbsp;&nbsp;by devnet0x</pre></font>
+          <font color="#FFFFFF"><font size='5'><b>Security Challenges Factory for Starknet.</b></font><font size='1'>&nbsp;&nbsp;&nbsp;by devnet0x</font></font>
         </div>
         <nav className={sidebar ? "nav-menu active" : "nav-menu"}>
           <ul className="nav-menu-items" onClick={showSidebar}>

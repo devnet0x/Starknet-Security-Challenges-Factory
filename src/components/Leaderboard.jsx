@@ -48,7 +48,7 @@ function Points(){
             {
               data2.map (content =>(
                 <tr> 
-                  <td style={{border : '1px solid'}}>{feltToString(content.nickname)}</td>
+                  <td style={{border : '1px solid'}}>{feltToString(content.nickname).substring(0,12)}</td>
                   <td style={{border : '1px solid'}}>{parseInt(content.points,16)}</td>
                   <td style={{border : '1px solid'}}>0x{content.address.substring(0,4)}...{content.address.substring(content.address.length - 4)}</td>
                 </tr>

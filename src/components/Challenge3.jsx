@@ -108,13 +108,22 @@ function Challenge3Deploy() {
       execute().then(tx => setHash(tx.transaction_hash))
     }
 
+    let newContractAddress=""
+    if (data)
+    if ((data.status=="ACCEPTED_ON_L2")||data.status=="ACCEPTED_ON_L1")
+      data.events.forEach(event => {
+        let paddedFrom="0x"+event.from_address.substring(2).padStart(64,'0')
+        if (paddedFrom==global.MAIN_CONTRACT_ADDRESS)
+          newContractAddress=event.data[0]
+      })
+
     return (
       <>
         <p><button onClick={handleClick}>Begin Challenge</button></p>
         {error && <div>Error: {JSON.stringify(error)}</div>}
         {data && <div><div>Tx.Hash: {hash}</div> <div>Status: {data.status}  </div></div>}      
-        {data && data.status=="ACCEPTED_ON_L2" && <div>Challenge contract deployed at address: {data.events[1].data[2]} </div>}
-        {data && data.status=="ACCEPTED_ON_L2" && data.events?<div> <Challenge3Check /> </div>:<div></div>}
+        {data && (data.status=="ACCEPTED_ON_L2"||data.status=="ACCEPTED_ON_L1") && <div> Challenge contract deployed at address: {newContractAddress} </div>}
+        {data && (data.status=="ACCEPTED_ON_L2"||data.status=="ACCEPTED_ON_L1") && data.events?<div> <Challenge3Check /> </div>:<div></div>}
        </>
     )
 }
@@ -140,8 +149,6 @@ function Challenge3Check() {
         <p><button onClick={handleClick}>Check Solution</button></p>
         {error && <div>Error: {JSON.stringify(error)}</div>}
         {data && <div><div>Tx.Hash: {hash}</div> <div>Status: {data.status}  </div></div>}      
-        {data && data.status=="ACCEPTED_ON_L2" && <div>Challenge contract deployed at address: {data.events[1].data[2]} </div>}
-        {data && data.status=="ACCEPTED_ON_L2" && data.events?<div> Result {data.events[0].data[2]} </div>:<div></div>}
        </>
     )
   }
@@ -156,24 +163,27 @@ function Challenge3() {
     });
 
   return (
-    <div className="App">
-      <table><td width="30%"></td><td>
+    <div className="App" class='flex-table row' role='rowgroup'>
+      <div class='flex-row-emp' role='cell'></div>
+      
+      <div class='flex-row-wide' role='cell'>
         <StarknetConfig connectors={connectors}>
-        <p><font size="+2"><b>CHOOSE A NICKNAME</b></font></p>
-        It’s time to set your Capture the Ether nickname! This nickname is how you’ll show up on the leaderboard.<br /><br />
-
-The game smart contract keeps track of a nickname for every player.<br /><br />To complete this challenge, set your nickname to a non-empty string. The smart contract is running on the Goerli test network at the address {global.MAIN_CONTRACT_ADDRESS}.<br /><br />
-
-Here’s the code for this challenge:
-        <div align='justify'>
-        <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000"}} showLineNumbers="true">
-          {text}
-        </SyntaxHighlighter>
-        </div>
-         <ConnectWallet />
+          <p><font size="+2"><b>CHOOSE A NICKNAME</b></font></p>
+          It’s time to set your Capture the Ether nickname! This nickname is how you’ll show up on the leaderboard.<br /><br />
+          The game smart contract keeps track of a nickname for every player.<br /><br />
+          To complete this challenge, set your nickname to a non-empty string. The smart contract 
+          is running on the Goerli test network at the address {global.MAIN_CONTRACT_ADDRESS}.<br /><br />
+          Here’s the code for this challenge:
+          <div align='justify'>
+            <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
+              {text}
+            </SyntaxHighlighter>
+          </div>
+          <ConnectWallet />
         </StarknetConfig>
-        </td><td width="30%"></td>
-        </table>
+      </div>
+        
+      <div class='flex-row-emp' role='cell'></div>
     </div>
   );
 }

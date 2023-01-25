@@ -337,3 +337,14 @@ func setAdmin{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(n
     Proxy._set_admin(new_admin);
     return ();
 }
+
+@external
+func updateChallenge{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    challenge_id: felt,
+    new_class_hash :felt,
+    new_points:felt) {
+    Proxy.assert_only_admin();
+    let new_challenge = challenge_struct(class_hash=new_class_hash,points=new_points);
+    challenges.write(challenge_id,new_challenge);
+    return ();
+}

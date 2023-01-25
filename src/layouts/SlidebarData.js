@@ -20,27 +20,34 @@ export const SidebarData = [
     cName: "nav-text"
   },
   {
-    title: "Deploy",
+    title: "Deploy(50 pts)",
     path: "/Challenge1",
     icon: <FaIcons.FaCloudUploadAlt />,
     cName: "nav-text"
   },
   {
-    title: "Call Me",
+    title: "Call Me(100 pts)",
     path: "/Challenge2",
     icon: <IoIcons.IoIosCall />,
     cName: "nav-text"
   },
   {
-    title: "Nickname",
+    title: "Nickname(200 pts)",
     path: "/Challenge3",
     icon: <FaIcons.FaMask />,
     cName: "nav-text"
   },
   {
-    title: "Guess",
+    title: "Guess(200 pts)",
     path: "/Challenge4",
     icon: <AiIcons.AiFillFileUnknown />,
     cName: "nav-text"
+  },
+  {
+    title: "Secret(300 pts)",
+    path: "/Challenge5",
+    icon: <FaIcons.FaUserSecret />,
+    cName: "nav-text"
   }
+  
 ];
