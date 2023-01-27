@@ -84,7 +84,7 @@ function ConnectWallet() {
   )
   return (
     <>
-      <p>Connected: {address}.</p>
+      <p>Connected: {address.substring(0,6)}...{address.substring(address.length - 4)}.</p>
       {address && <p><Points /></p>}
       {address && <p><Status /></p>}
     </>

@@ -4,7 +4,7 @@
 %lang starknet
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.bool import FALSE, TRUE
-from starkware.cairo.common.math import assert_not_equal, assert_lt
+from starkware.cairo.common.math import assert_not_equal
 from starkware.cairo.common.math_cmp import is_le
 from starkware.starknet.common.syscalls import deploy,get_caller_address
 from starkware.cairo.common.alloc import alloc
@@ -77,11 +77,14 @@ func salt() -> (value: felt) {
 func contract_deployed(contract_address: felt) {
 }
 
+@event
+func e1(res: felt) {
+}
 
-// ######## Constructor
-
+@event
+func e2(res: felt) {
+}
 // ######## External functions
-
 
 // Function to deploy challenges to players
 @external
@@ -209,6 +212,7 @@ func test_challenge{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
 func get_points{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     _player: felt
     ) -> (_points:felt) {
+    alloc_locals;
     let (current_player)=player.read(_player);
     return(_points=current_player.points,);
 }
@@ -218,6 +222,7 @@ func get_points{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}
 func get_challenge_status{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     _player: felt, _challenge_number: felt
     ) -> (_resolved:felt) {
+    alloc_locals;
     let (current_challenge)=player_challenges.read(_player,_challenge_number);
     return(_resolved=current_challenge.resolved,);
 }
@@ -226,9 +231,11 @@ func get_challenge_status{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_
 @view
 func get_nickname{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     _player: felt) -> (_nickname:felt) {
+    alloc_locals;
     let (current_player)=player.read(_player);
     return(_nickname=current_player.nickname,);
 }
+
 
 //Set player nickname
 @external
@@ -238,11 +245,16 @@ func set_nickname{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
     let (sender) = get_caller_address();
     let (current_player) = player.read(sender);
     let player_points = current_player.points;
-    player.write(sender,player_struct(id=current_player.id,nickname=_nickname,points=player_points,address=current_player.address,));
+    //Check if already resolved
+    with_attr error_message("You must finish a challenge before set nickname.") {
+        assert_not_equal(player_points,0);
+    }
+    player.write(sender,player_struct(id=current_player.id,nickname=_nickname,points=player_points,address=current_player.address));
     registered_players.write(current_player.id,player_struct(id=current_player.id,nickname=_nickname,points=player_points,address=current_player.address));
     
     return ();
 }
+
 
 // Set ranking array (recursive)
 func setPlayer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
@@ -326,6 +338,14 @@ func getImplementationHash{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range
 func getAdmin{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (admin: felt) {
     return Proxy.get_admin();
 }
+
+@view
+func getPlayerCount{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (total: felt) {
+    alloc_locals;
+    let (cant)=player_count.read();
+    return(total=cant,);
+}
+
 
 //
 // Setters

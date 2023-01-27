@@ -1,72 +1,175 @@
-# Getting Started with Create React App
+# TO RUN
+```
+npm start run
+```
+# FIRST INSTALL
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+/************************************** 1) Declare contracts ***************************************/
+```
+./proto_build.sh testnet acct2.key ./build/challenge1.json 
+./proto_build.sh testnet acct2.key ./build/challenge2.json 
+./proto_build.sh testnet acct2.key ./build/challenge3.json 
+./proto_build.sh testnet acct2.key ./build/challenge4.json 
+./proto_build.sh testnet acct2.key ./build/challenge5.json 
+./proto_build.sh testnet acct2.key ./build/main.json 
+```
+/***************************************
+2) Deploy proxy
+***************************************/
+```
+./proto_build.sh testnet acct2.key ./build/proxy.json <main_class_hash> 1295919550572838631247819983596733806859788957403169325509326258146877103642 1 1720505794444067493684054237668661975668255683573946537258759551417823511264
 
-## Available Scripts
+TESTNET account
+0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0
+1720505794444067493684054237668661975668255683573946537258759551417823511264
 
-In the project directory, you can run:
+DEVNET account
+0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a
+3562055384976875123115280411327378123839557441680670463096306030682092229914
+```
+/***************************************
+3) Setup private key
+***************************************/
+```
+export PROTOSTAR_ACCOUNT_PRIVATE_KEY=<PRIVATE_KEY>
+```
+/***************************************
+4) Add challenge5 not included in main constructor
+***************************************/
+```
+protostar invoke --contract-address 0x0669509353516162399fa39c771e578ace956fb7f2f262d3d717e0e83aed759a --function "updateChallenge" --network testnet --max-fee auto --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --inputs 5 1608260295188695349903848762173716114981113955591920494022193585462776448318 300
+```
 
-### `npm start`
+# MAIN UPGRADE
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+/***************************************
+1) Declare main
+***************************************/
+```
+./proto_build.sh testnet acct2.key ./build/main.json 
+```
+/***************************************
+2) Setup private key
+***************************************/
+```
+export PROTOSTAR_ACCOUNT_PRIVATE_KEY=<PRIVATE_KEY>
+```
+/***************************************
+3) Upgrade main
+***************************************/
+```
+protostar invoke --contract-address 0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd --function "upgrade" --network testnet --max-fee auto --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --inputs <new_main_class_hash_SINO EXISTE CLASS_HASH_SE PIERDE EL PROXY Y LOS DATOS>
+```
+/***************************************
+4) Copy main to assets
+***************************************/
+```
+cp main.cairo ../cairo/Starknet-Security-Challenges-Factory/src/assets/
+```
+/***************************************
+5) Upload web3 to test
+***************************************/
+```
+vercel
+```
+/***************************************
+6) Test interface
+***************************************/
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+/***************************************
+7) Upload web3 to prod
+***************************************/
+```
+vercel --prod
+```
+/***************************************
+8) Upload web3 to github factory
+***************************************/
+```
+git status
+git add -A
+git commit -m "Add new challenge"
+git push
+cd ..
+```
 
-### `npm install?`
+# ADD CHALLENGE
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+/************************************** 1) Declare new_challenge ***************************************/
+```
+./proto_build.sh testnet acct2.key ./build/challenge<>.json 
+```
+/***************************************
+2) Setup private key
+***************************************/
+```
+export PROTOSTAR_ACCOUNT_PRIVATE_KEY=<PRIVATE_KEY>
+```
+/***************************************
+5) Add new challenge to main
+***************************************/
+```
+protostar invoke --contract-address 0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd --function "updateChallenge" --network testnet --max-fee auto --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --inputs <new_id> <new_challenge_class_hash> <challenge_points>
+```
+/***************************************
+6) Copy challenge to react assets
+***************************************/
+```
+cp <new_challenge>.cairo $HOME/cairo/Starknet-Security-Challenges-Factory/src/assets/
+```
+/***************************************
+7) Restore tesnet proxy en global.jsx
+***************************************/
+```
+global.MAIN_CONTRACT_ADDRESS='0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd';
 
-### `npm run build`
+Comment devnet address
+```
+/***************************************
+8) Upload web3 to test
+***************************************/
+```
+cd $HOME/cairo/Starknet-Security-Challenges-Factory/
 
-### `npm start run`
+vercel
+```
+/***************************************
+9) Test interface
+***************************************/
+```
+https://starknet-challenges-devnet0x-gmailcom.vercel.app/
+```
+/***************************************
+10) Upload web3 to prod
+***************************************/
+```
+vercel --prod
+```
+/***************************************
+11) Upload web3 to github factory
+***************************************/
+```
+git status
+git add -A
+git commit -m "Add new challenge"
+git push
+cd ..
+```
+/***************************************
+12) Upload challenge to github repo
+***************************************/
+```
+cd Starknet-Security-Challenges-Repo/
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+cp ../../cte_cairo/challenge5.cairo .
+git add -A
+git commit -m "Add new challenge"
+git push
+```
+# ADD CHALLENGE REACT
+```
+Clone component Challenge.jsx
+Add option to SlideBarData.js
+Add page route to App.js
+Restore testnet address in global.jsx
+```

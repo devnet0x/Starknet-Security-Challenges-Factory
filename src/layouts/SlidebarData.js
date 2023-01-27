@@ -48,6 +48,12 @@ export const SidebarData = [
     path: "/Challenge5",
     icon: <FaIcons.FaUserSecret />,
     cName: "nav-text"
+  },
+  {
+    title: "Random(300 pts)",
+    path: "/Challenge6",
+    icon: <FaIcons.FaRecycle />,
+    cName: "nav-text"
   }
   
 ];
