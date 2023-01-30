@@ -8,6 +8,7 @@ import Challenge3 from "./components/Challenge3";
 import Challenge4 from "./components/Challenge4";
 import Challenge5 from "./components/Challenge5";
 import Challenge6 from "./components/Challenge6";
+import Challenge7 from "./components/Challenge7";
 import Nopage from "./components/Nopage";
 
 export default function App() {
@@ -23,6 +24,7 @@ export default function App() {
           <Route path="Challenge4" element={<Challenge4 />} />
           <Route path="Challenge5" element={<Challenge5 />} />
           <Route path="Challenge6" element={<Challenge6 />} />
+          <Route path="Challenge7" element={<Challenge7 />} />
           <Route path="*" element={<Nopage />} />
         </Route>
       </Routes>

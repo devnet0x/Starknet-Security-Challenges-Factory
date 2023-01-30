@@ -4,7 +4,7 @@ import * as FaIcons from "react-icons/fa";
 import * as AiIcons from "react-icons/ai";
 import * as IoIcons from "react-icons/io";
 import * as BsIcons from "react-icons/bs";
-import * as GrIcons from "react-icons/gr";
+import * as GiIcons from "react-icons/gi";
 
 export const SidebarData = [
   {
@@ -53,6 +53,12 @@ export const SidebarData = [
     title: "Random(300 pts)",
     path: "/Challenge6",
     icon: <FaIcons.FaRecycle />,
+    cName: "nav-text"
+  },
+  {
+    title: "Vtoken(500 pts)",
+    path: "/Challenge7",
+    icon: <GiIcons.GiRobber />,
     cName: "nav-text"
   }
   

@@ -4,17 +4,27 @@ npm start run
 ```
 # FIRST INSTALL
 
-/************************************** 1) Declare contracts ***************************************/
+/***************************************
+1) Setup private key
+***************************************/
 ```
-./proto_build.sh testnet acct2.key ./build/challenge1.json 
-./proto_build.sh testnet acct2.key ./build/challenge2.json 
-./proto_build.sh testnet acct2.key ./build/challenge3.json 
-./proto_build.sh testnet acct2.key ./build/challenge4.json 
-./proto_build.sh testnet acct2.key ./build/challenge5.json 
-./proto_build.sh testnet acct2.key ./build/main.json 
+export PROTOSTAR_ACCOUNT_PRIVATE_KEY=<PRIVATE_KEY>
+```
+/************************************** 2) Declare contracts ***************************************/
+```
+protostar build
+protostar declare ./build/challenge1.json --network testnet --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --max-fee auto
+protostar declare ./build/challenge2.json --network testnet --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --max-fee auto
+protostar declare ./build/challenge3.json --network testnet --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --max-fee auto
+protostar declare ./build/challenge4.json --network testnet --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --max-fee auto
+protostar declare ./build/challenge5.json --network testnet --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --max-fee auto
+protostar declare ./build/challenge6.json --network testnet --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --max-fee auto
+protostar declare ./build/challenge7.json --network testnet --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --max-fee auto
+protostar declare ./build/main.json --network testnet --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --max-fee auto
+
 ```
 /***************************************
-2) Deploy proxy
+3) Compile, declare and deploy proxy
 ***************************************/
 ```
 ./proto_build.sh testnet acct2.key ./build/proxy.json <main_class_hash> 1295919550572838631247819983596733806859788957403169325509326258146877103642 1 1720505794444067493684054237668661975668255683573946537258759551417823511264
@@ -27,17 +37,16 @@ DEVNET account
 0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a
 3562055384976875123115280411327378123839557441680670463096306030682092229914
 ```
+
 /***************************************
-3) Setup private key
-***************************************/
-```
-export PROTOSTAR_ACCOUNT_PRIVATE_KEY=<PRIVATE_KEY>
-```
-/***************************************
-4) Add challenge5 not included in main constructor
+4) Add challenges not included in main constructor
 ***************************************/
 ```
 protostar invoke --contract-address 0x0669509353516162399fa39c771e578ace956fb7f2f262d3d717e0e83aed759a --function "updateChallenge" --network testnet --max-fee auto --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --inputs 5 1608260295188695349903848762173716114981113955591920494022193585462776448318 300
+
+protostar invoke --contract-address 0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd --function "updateChallenge" --network testnet --max-fee auto --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --inputs 6 509460881826382358753513407542140252246689935694638291974509725008424896605 300
+
+protostar invoke --contract-address 0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd --function "updateChallenge" --network testnet --max-fee auto --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --inputs 7 1529006953307469816424184439819570255482354784921751969205932052064166548773 500
 ```
 
 # MAIN UPGRADE
@@ -90,7 +99,6 @@ git status
 git add -A
 git commit -m "Add new challenge"
 git push
-cd ..
 ```
 
 # ADD CHALLENGE
@@ -153,15 +161,14 @@ git status
 git add -A
 git commit -m "Add new challenge"
 git push
-cd ..
 ```
 /***************************************
 12) Upload challenge to github repo
 ***************************************/
 ```
-cd Starknet-Security-Challenges-Repo/
+cd $HOME/cairo/Starknet-Security-Challenges-Repo
 
-cp ../../cte_cairo/challenge5.cairo .
+cp $HOME/cte_cairo/challenge<n>.cairo .
 git add -A
 git commit -m "Add new challenge"
 git push
