@@ -1,7 +1,8 @@
 import React from 'react';
-import { useRef } from "react";
-import { toBlob } from "html-to-image";
-import challengeCode from '../assets/challenge1.cairo'
+import challengeCode from '../assets/challenge8_main.cairo'
+import challengeERC20Code from '../assets/challenge8_erc20.cairo'
+import challengeERC223Code from '../assets/challenge8_erc223.cairo'
+import challengeDEXCode from '../assets/challenge8_dex.cairo'
 import '../App.css';
 import { useAccount,useConnectors,useStarknetExecute,useTransactionReceipt,
         useStarknetCall,useContract } from '@starknet-react/core';
@@ -52,7 +53,7 @@ function Status(){
     const { data , loading, error, refresh } = useStarknetCall({
         contract,
         method: 'get_challenge_status',
-        args:[address,'1'],
+        args:[address,'8'],
         options: {
             watch: true
         }
@@ -62,7 +63,7 @@ function Status(){
     if (error) return <span>Error: {error}</span>
     return(
         <span>
-        {data && !parseInt(data[0].toString())?<Challenge1Deploy />:<span>Already Resolved</span>}
+        {data && !parseInt(data[0].toString())?<Challenge8Deploy />:<span>Already Resolved</span>}
         </span>
     ) 
 }
@@ -93,7 +94,7 @@ function ConnectWallet() {
   )
 }
 
-function Challenge1Deploy() {
+function Challenge8Deploy() {
 
     const [hash, setHash] = useState(undefined)
     const { data, loading, error } = useTransactionReceipt({ hash, watch: true })
@@ -102,7 +103,7 @@ function Challenge1Deploy() {
       calls: [{
         contractAddress: global.MAIN_CONTRACT_ADDRESS,
         entrypoint: 'deploy_challenge',
-        calldata: ['1']
+        calldata: ['8']
       }]
     })
   
@@ -125,12 +126,12 @@ function Challenge1Deploy() {
         {error && <div>Error: {JSON.stringify(error)}</div>}
         {data && <div><div>Tx.Hash: {hash}</div> <div>Status: {data.status}  </div></div>}      
         {data && (data.status=="ACCEPTED_ON_L2"||data.status=="ACCEPTED_ON_L1") && <div> Challenge contract deployed at address: {newContractAddress} </div>}
-        {data && (data.status=="ACCEPTED_ON_L2"||data.status=="ACCEPTED_ON_L1") && data.events?<div> <Challenge1Check /> </div>:<div></div>}
+        {data && (data.status=="ACCEPTED_ON_L2"||data.status=="ACCEPTED_ON_L1") && data.events?<div> <Challenge8Check /> </div>:<div></div>}
        </>
     )
 }
 
-function Challenge1Check() {
+function Challenge8Check() {
     const [hash, setHash] = useState(undefined)
     const { data, loading, error } = useTransactionReceipt({ hash, watch: true })
 
@@ -138,7 +139,7 @@ function Challenge1Check() {
       calls: [{
         contractAddress: global.MAIN_CONTRACT_ADDRESS,
         entrypoint: 'test_challenge',
-        calldata: ['1']
+        calldata: ['8']
       }]
     })
   
@@ -150,34 +151,77 @@ function Challenge1Check() {
       <>
         <p><button onClick={handleClick}>Check Solution</button></p>
         {error && <div>Error: {JSON.stringify(error)}</div>}
-        {data && <div><div>Tx.Hash: {hash}</div> <div>Status: {data.status}  </div></div>}      
+        {data && <div><div>Tx.Hash: {hash}</div> <div>Status: {data.status}  </div></div>}     
        </>
     )
   }
 
-function Challenge1() {
-  const [text, setText] = React.useState();
+
+function Challenge8() {
+  const [text1, setText1] = React.useState();
   fetch(challengeCode)
     .then((response) => response.text())
     .then((textContent) => {
-      setText(textContent);
+      setText1(textContent); 
     });
-
+  
+  const [text2, setText2] = React.useState();
+  fetch(challengeERC223Code)
+    .then((response) => response.text())
+    .then((textContent) => {
+      setText2(textContent); 
+    });
+  
+  const [text3, setText3] = React.useState();
+  fetch(challengeERC20Code)
+    .then((response) => response.text())
+    .then((textContent) => {
+      setText3(textContent); 
+    });
+  
+  const [text4, setText4] = React.useState();
+  fetch(challengeDEXCode)
+    .then((response) => response.text())
+    .then((textContent) => {
+      setText4(textContent); 
+    });
+  
   return (
     <div className="App" class='flex-table row' role='rowgroup'>
       <div class='flex-row-emp' role='cell'></div>
       
       <div class='flex-row-wide' role='cell'>
         <StarknetConfig connectors={connectors}>
-          <p><font size="+2"><b>DEPLOY A CONTRACT</b></font></p>
-          Just connect your wallet in starknet goerli testnet and click the
-          "Begin Challenge" button on the bottom to deploy the challenge contract.<br /><br />
-          You don’t need to do anything with the contract once it’s deployed. <br /><br />
-          Just press “Check Solution” button to verify that you deployed successfully.<br /><br />
-          Here’s the code for this challenge:
+          <p><font size="+2"><b>It's always sunny in decentralized exchanges</b></font></p>
+          I bet you are familiar with decentralized exchanges: a magical place where one can exchange different tokens.
+InsecureDexLP is exactly that: a very insecure Uniswap-kind-of decentralized exchange.
+Recently, the $ISEC token got listed in this dex and can be traded against a not-so-popular token called $SET.<br /><br />
+
+📌 Upon deployment, InSecureumToken and SimpleERC223Token mint an initial supply of 100 $ISEC and 100 $SET to the contract deployer.<br />
+📌 The InsecureDexLP operates with $ISEC and $SET.<br />
+📌 The dex has an initial liquidity of 10 $ISEC and 10 $SET, provided by deployer. This quantity can be increased by anyone through token deposits.<br />
+📌 Adding liquidity to the dex rewards liquidity pool tokens (LP tokens), which can be redeemed in any moment for the original funds.<br />
+📌 Also the deployer graciously airdrops the challenger (you!) 1 $ISEC and 1 $SET.<br /><br />
+
+Will you be able to drain most of InsecureDexLP's $ISEC/$SET liquidity? 😈😈😈<br />
+Build a smart contract to exploit this vulnerability and call it with call_exploit function.<br />
+<br />
+          Insecure DEX:
           <div align='justify'>
             <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
-              {text}
+              {text4}
+            </SyntaxHighlighter>
+            ISET ERC223:
+            <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
+              {text2}
+            </SyntaxHighlighter>
+            ISEC ERC20:
+            <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
+              {text3}
+            </SyntaxHighlighter>
+            Main deployer contract with challenge setup:
+            <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
+              {text1}
             </SyntaxHighlighter>
           </div>
           <ConnectWallet />
@@ -187,6 +231,7 @@ function Challenge1() {
       <div class='flex-row-emp' role='cell'></div>
     </div>
   );
+
 }
 
-export default Challenge1;
+export default Challenge8;

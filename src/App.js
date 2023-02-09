@@ -10,6 +10,7 @@ import Challenge4 from "./components/Challenge4";
 import Challenge5 from "./components/Challenge5";
 import Challenge6 from "./components/Challenge6";
 import Challenge7 from "./components/Challenge7";
+import Challenge8 from "./components/Challenge8";
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="/cte22/Challenge5" element={<Challenge5 />} />
           <Route path="/cte22/Challenge6" element={<Challenge6 />} />
           <Route path="/amazex22/challenge7" element={<Challenge7 />} />
+          <Route path="/amazex22/challenge8" element={<Challenge8 />} />
           <Route path="*" element={<Nopage />} />
         </Route>
       </Routes>

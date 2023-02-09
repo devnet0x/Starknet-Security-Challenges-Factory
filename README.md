@@ -47,6 +47,8 @@ protostar invoke --contract-address 0x0669509353516162399fa39c771e578ace956fb7f2
 protostar invoke --contract-address 0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd --function "updateChallenge" --network testnet --max-fee auto --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --inputs 6 509460881826382358753513407542140252246689935694638291974509725008424896605 300
 
 protostar invoke --contract-address 0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd --function "updateChallenge" --network testnet --max-fee auto --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --inputs 7 1529006953307469816424184439819570255482354784921751969205932052064166548773 500
+
+protostar invoke --contract-address 0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd --function "updateChallenge" --network testnet --max-fee auto --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --inputs 8 2541513634400202439989150743186800759218763417772159699724177676341034823375 1500
 ```
 
 # MAIN UPGRADE
@@ -179,4 +181,5 @@ Clone component Challenge.jsx
 Add option to SlideBarData.js
 Add page route to App.js
 Restore testnet address in global.jsx
+npm start run
 ```

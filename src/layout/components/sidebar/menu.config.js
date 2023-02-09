@@ -62,6 +62,11 @@ import * as GiIcons from "react-icons/gi";
             Icon: GiIcons.GiToken,
             to: 'challenge7',
           },
+          {
+            label: 'Insecure Dex(1500 pts)',
+            Icon: BsIcons.BsCurrencyExchange,
+            to: 'challenge8',
+          },
         ],
       },
   ];
