@@ -69,4 +69,16 @@ import * as GiIcons from "react-icons/gi";
           },
         ],
       },
+      {
+          label: 'Ethernaut(2022)', 
+          Icon: FaIcons.FaUserAstronaut,
+          to: '/ethernaut22',
+          children: [
+            {
+              label: 'Fallout(500 pts)',
+              Icon: BsIcons.BsSpellcheck,
+              to: 'challenge9',
+            },
+          ],
+        },
   ];
