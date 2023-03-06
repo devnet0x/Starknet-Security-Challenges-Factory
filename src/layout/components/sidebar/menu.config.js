@@ -79,6 +79,11 @@ import * as GiIcons from "react-icons/gi";
               Icon: BsIcons.BsSpellcheck,
               to: 'challenge9',
             },
+            {
+              label: 'CoinFlip(700 pts)',
+              Icon: GiIcons.GiCoinflip,
+              to: 'challenge10',
+            },
           ],
         },
   ];
