@@ -84,6 +84,11 @@ import * as GiIcons from "react-icons/gi";
               Icon: GiIcons.GiCoinflip,
               to: 'challenge10',
             },
+            {
+              label: 'Telephone(300 pts)',
+              Icon: GiIcons.GiRotaryPhone,
+              to: 'challenge11',
+            },
           ],
         },
   ];

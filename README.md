@@ -20,7 +20,10 @@ protostar declare ./build/challenge4.json --network testnet --account-address 0x
 protostar declare ./build/challenge5.json --network testnet --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --max-fee auto
 protostar declare ./build/challenge6.json --network testnet --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --max-fee auto
 protostar declare ./build/challenge7.json --network testnet --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --max-fee auto
-protostar declare ./build/main.json --network testnet --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --max-fee auto
+protostar declare ./build/challenge8.json --network testnet --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --max-fee auto
+protostar declare ./build/challenge9.json --network testnet --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --max-fee auto
+protostar declare ./build/challenge10.json --network testnet --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --max-fee auto
+protostar declare ./build/challenge11.json --network testnet --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --max-fee auto
 
 ```
 /***************************************
@@ -52,8 +55,9 @@ protostar invoke --contract-address 0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a
 
 protostar invoke --contract-address 0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd --function "updateChallenge" --network testnet --max-fee auto --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --inputs 9 545858728179457734741843161691485775885915783754774412084571145251249622279 500
 
-protostar invoke --contract-address 0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd --function "updateChallenge" --network testnet --max-fee auto --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --inputs 10 2302971972356056671842458846705835106184706859210749510769192203935518790136 700
+protostar invoke --contract-address 0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd --function "updateChallenge" --network testnet --max-fee auto --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --inputs 10 3505238357554179806589872945641373415162648036216351712792606011706202981006 700
 
+protostar invoke --contract-address 0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd --function "updateChallenge" --network testnet --max-fee auto --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --inputs 11 1776020012526830053623742027519185568683529369535560571723486745965324138888 300
 ```
 
 # MAIN UPGRADE
