@@ -1,11 +1,10 @@
 import React from 'react';
-import { useRef } from "react";
-import { toBlob } from "html-to-image";
+
 import challengeCode from '../assets/challenge1.cairo'
 import '../App.css';
 import { useAccount,useConnectors,useStarknetExecute,useTransactionReceipt,
         useStarknetCall,useContract } from '@starknet-react/core';
-import { useMemo,useState } from 'react' 
+import { useState } from 'react' 
 
 import { StarknetConfig, InjectedConnector } from '@starknet-react/core'
 import mainABI from '../assets/main_abi.json'
@@ -13,6 +12,8 @@ import global from '../global.jsx'
 
 import { monokaiSublime } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import SyntaxHighlighter from 'react-syntax-highlighter';
+
+import ToggleSwitch from './ToggleSwitch.js';
 
 const connectors = [
   new InjectedConnector({ options: { id: 'braavos' }}),
@@ -162,12 +163,20 @@ function Challenge1() {
     .then((textContent) => {
       setText(textContent);
     });
+    const textOptions = ["EN", "ES"];
+    const chkID = "checkboxID";
+    const [lang, setLang] = useState(true);
 
+    if (lang) {
   return (
     <div className="App" class='flex-table row' role='rowgroup'>
+
       <div class='flex-row-emp' role='cell'></div>
       
       <div class='flex-row-wide' role='cell'>
+      <div align='center'>
+      <ToggleSwitch id={chkID} checked={lang} optionLabels={textOptions} small={true} onChange={checked => setLang(checked)} />
+      </div>
         <StarknetConfig connectors={connectors}>
           <p><font size="+2"><b>DEPLOY A CONTRACT</b></font></p>
           Just connect your wallet in starknet goerli testnet and click the
@@ -187,6 +196,35 @@ function Challenge1() {
       <div class='flex-row-emp' role='cell'></div>
     </div>
   );
+}else{
+  return (
+    <div className="App" class='flex-table row' role='rowgroup'>
+      <div class='flex-row-emp' role='cell'></div>
+      
+      <div class='flex-row-wide' role='cell'>
+      <div align='center'>
+      <ToggleSwitch id={chkID} checked={lang} optionLabels={textOptions} small={true} onChange={checked => setLang(checked)} />
+      </div>
+        <StarknetConfig connectors={connectors}>
+          <p><font size="+2"><b>DEPLOY A CONTRACT</b></font></p>
+          Solo conecta tu wallet en Starknet Goerli Testnet y haz click en el boton
+          "Begin Challenge" al fondo para desplegar el contrato inteligente.<br /><br />
+          No necesitas hacer nada con el contrato una vez que se implementa. <br /><br />
+           Simplemente presiona el botón "Check Solution" para verificar que se implementó correctamente.<br /><br />
+           Aquí está el código para este reto:
+          <div align='justify'>
+            <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
+              {text}
+            </SyntaxHighlighter>
+          </div>
+          <ConnectWallet />
+        </StarknetConfig>
+      </div>
+        
+      <div class='flex-row-emp' role='cell'></div>
+    </div>
+  );
+}
 }
 
 export default Challenge1;

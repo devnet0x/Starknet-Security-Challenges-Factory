@@ -1,16 +1,15 @@
 import '../App.css';
-import { useAccount,useConnectors,useStarknetExecute,useTransactionReceipt,
+import { useAccount,useConnectors,
         useStarknetCall,useContract } from '@starknet-react/core';
-import { useMemo,useState } from 'react' 
+import { useState } from 'react' 
 
 import { StarknetConfig, InjectedConnector } from '@starknet-react/core'
 import mainABI from '../assets/main_abi.json'
 import global from '../global.jsx'
 
-import { monokaiSublime } from 'react-syntax-highlighter/dist/esm/styles/hljs';
-import SyntaxHighlighter from 'react-syntax-highlighter';
+import { feltToString } from '../utils/utils.js'
 
-import { feltToString, stringToFelt } from '../utils/utils.js'
+import ToggleSwitch from './ToggleSwitch.js';
 
 const connectors = [
   new InjectedConnector({ options: { id: 'braavos' }}),
@@ -37,6 +36,7 @@ function Points(){
 
         data._player_list.sort((a, b) => parseInt(b.points,16) - parseInt(a.points,16))
         let data2=JSON.parse(JSON.stringify(data._player_list))
+        
         return(
             <span>
             <table cellspacing="0" align='center' style={{fontFamily : "Courier New"}}>
@@ -87,17 +87,22 @@ function ConnectWallet() {
 
 
 function Leaderboard() {
-  const codeString = `%lang starknet
-from starkware.cairo.common.cairo_builtins import HashBuiltin`;
+  const text = ["EN", "ES"];
+  const chkID = "checkboxID";
+  const [lang, setLang] = useState(true);
 
   return (
+    
     <div className="App">
+      <div align='center'>
+        <ToggleSwitch id={chkID} checked={lang} optionLabels={text} small={true} onChange={checked => setLang(checked)} />
+      </div>
       <table align="center" style={{border : '1px solid'}}>
         <td width="30%"></td>
         <td>
           <StarknetConfig connectors={connectors}>
             <p><font size="+2"><b>LEADERBOARD</b></font></p>
-            <p>Connect wallet to access hall of fame</p>
+            {lang?<p>Connect wallet to access hall of fame</p>:<p>Conecta tu wallet para acceder al salón de la fama</p>}
             <ConnectWallet />
           </StarknetConfig>
         </td>

@@ -12,6 +12,8 @@ import global from '../global.jsx'
 import { monokaiSublime } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 
+import ToggleSwitch from './ToggleSwitch.js';
+
 const connectors = [
   new InjectedConnector({ options: { id: 'braavos' }}),
   new InjectedConnector({ options: { id: 'argentX' }}),
@@ -161,12 +163,19 @@ function Challenge10() {
     .then((textContent) => {
       setText(textContent); 
     });
+    const textOptions = ["EN", "ES"];
+    const chkID = "checkboxID";
+    const [lang, setLang] = useState(true);
 
+    if (lang) {
   return (
     <div className="App" class='flex-table row' role='rowgroup'>
       <div class='flex-row-emp' role='cell'></div>
       
       <div class='flex-row-wide' role='cell'>
+      <div align='center'>
+      <ToggleSwitch id={chkID} checked={lang} optionLabels={textOptions} small={true} onChange={checked => setLang(checked)} />
+      </div>
         <StarknetConfig connectors={connectors}>
           <p><font size="+2"><b>COIN FLIP</b></font></p>
           This is a coin flipping game where you need to build up your winning streak by guessing the outcome of a coin flip. 
@@ -183,6 +192,32 @@ function Challenge10() {
       <div class='flex-row-emp' role='cell'></div>
     </div>
   );
+}else{
+  return (
+    <div className="App" class='flex-table row' role='rowgroup'>
+      <div class='flex-row-emp' role='cell'></div>
+      
+      <div class='flex-row-wide' role='cell'>
+      <div align='center'>
+      <ToggleSwitch id={chkID} checked={lang} optionLabels={textOptions} small={true} onChange={checked => setLang(checked)} />
+      </div>
+        <StarknetConfig connectors={connectors}>
+          <p><font size="+2"><b>COIN FLIP</b></font></p>
+          Este es un juego de lanzamiento de monedas en el que debes construir tu racha ganadora adivinando el resultado del lanzamiento.
+           Para completar este nivel necesitarás usar tus habilidades psíquicas para adivinar el resultado correcto 6 veces seguidas:
+          <div align='justify'>
+            <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
+              {text}
+            </SyntaxHighlighter>
+          </div>
+          <ConnectWallet />
+        </StarknetConfig>
+      </div>
+        
+      <div class='flex-row-emp' role='cell'></div>
+    </div>
+  );
+}
 
 }
 

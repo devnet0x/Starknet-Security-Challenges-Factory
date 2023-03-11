@@ -15,6 +15,8 @@ import global from '../global.jsx'
 import { monokaiSublime } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 
+import ToggleSwitch from './ToggleSwitch.js';
+
 const connectors = [
   new InjectedConnector({ options: { id: 'braavos' }}),
   new InjectedConnector({ options: { id: 'argentX' }}),
@@ -185,12 +187,19 @@ function Challenge8() {
     .then((textContent) => {
       setText4(textContent); 
     });
-  
+    const textOptions = ["EN", "ES"];
+    const chkID = "checkboxID";
+    const [lang, setLang] = useState(true);
+
+    if (lang) {
   return (
     <div className="App" class='flex-table row' role='rowgroup'>
       <div class='flex-row-emp' role='cell'></div>
       
       <div class='flex-row-wide' role='cell'>
+      <div align='center'>
+      <ToggleSwitch id={chkID} checked={lang} optionLabels={textOptions} small={true} onChange={checked => setLang(checked)} />
+      </div>
         <StarknetConfig connectors={connectors}>
           <p><font size="+2"><b>It's always sunny in decentralized exchanges</b></font></p>
           I bet you are familiar with decentralized exchanges: a magical place where one can exchange different tokens.
@@ -231,7 +240,56 @@ Build a smart contract to exploit this vulnerability and call it with call_explo
       <div class='flex-row-emp' role='cell'></div>
     </div>
   );
+}else{
+  return (
+    <div className="App" class='flex-table row' role='rowgroup'>
+      <div class='flex-row-emp' role='cell'></div>
+      
+      <div class='flex-row-wide' role='cell'>
+      <div align='center'>
+      <ToggleSwitch id={chkID} checked={lang} optionLabels={textOptions} small={true} onChange={checked => setLang(checked)} />
+      </div>
+        <StarknetConfig connectors={connectors}>
+          <p><font size="+2"><b>It's always sunny in decentralized exchanges</b></font></p>
+          Apuesto a que está familiarizado con los exchange descentralizados: un lugar mágico donde se pueden intercambiar diferentes tokens.
+InsecureDexLP es exactamente eso: un tipo de exchange descentralizado estilo Uniswap pero muy inseguro.
+Recientemente, el token $ISEC se incluyó en este dex y se puede cambiar por un token no tan popular llamado $SET.<br /><br />
 
+📌 Tras la implementación, InSecureumToken y SimpleERC223Token emiten un suministro inicial de 100 $ISEC y 100 $SET para el implementador (deployer) del contrato.<br />
+📌 El InsecureDexLP opera con $ISEC y $SET.<br />
+📌 El dex tiene una liquidez inicial de 10 $ISEC y 10 $SET, proporcionada por el implementador (deployer). Esta cantidad puede ser incrementada por cualquier persona que deposite tokens.<br />
+📌 Agregando liquidez al dex recompensa con tokens del pool de liquidez (tokens LP), que se pueden canjear en cualquier momento por los fondos originales.<br />
+📌 Además, el implementador emite gentilmente al retador (¡a ti!) 1 $ISEC y 1 $SET.<br /><br />
+
+¿Podrás drenar la mayor parte de la liquidez de $ISEC/$SET de InsecureDexLP? 😈😈😈<br />
+Crea un contrato inteligente para explotar esta vulnerabilidad y llámalo con la función call_exploit.<br />
+<br />
+          Insecure DEX:
+          <div align='justify'>
+            <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
+              {text4}
+            </SyntaxHighlighter>
+            ISET ERC223:
+            <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
+              {text2}
+            </SyntaxHighlighter>
+            ISEC ERC20:
+            <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
+              {text3}
+            </SyntaxHighlighter>
+            Contrato principal del implementador (deployer) con la configuración inicial del reto:
+            <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
+              {text1}
+            </SyntaxHighlighter>
+          </div>
+          <ConnectWallet />
+        </StarknetConfig>
+      </div>
+        
+      <div class='flex-row-emp' role='cell'></div>
+    </div>
+  );
+}
 }
 
 export default Challenge8;
