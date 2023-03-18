@@ -13,6 +13,8 @@ export PROTOSTAR_ACCOUNT_PRIVATE_KEY=<PRIVATE_KEY>
 /************************************** 2) Declare contracts ***************************************/
 ```
 protostar build
+protostar declare ./build/nft.json --network testnet --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --max-fee auto
+protostar declare ./build/main.json --network testnet --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --max-fee auto
 protostar declare ./build/challenge1.json --network testnet --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --max-fee auto
 protostar declare ./build/challenge2.json --network testnet --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --max-fee auto
 protostar declare ./build/challenge3.json --network testnet --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --max-fee auto
@@ -30,7 +32,12 @@ protostar declare ./build/challenge11.json --network testnet --account-address 0
 3) Compile, declare and deploy proxy
 ***************************************/
 ```
-./proto_build.sh testnet acct2.key ./build/proxy.json <main_class_hash> 1295919550572838631247819983596733806859788957403169325509326258146877103642 1 1720505794444067493684054237668661975668255683573946537258759551417823511264
+./proto_build.sh testnet acct2.key ./build/proxy.json <NFT_CLASS_HASH> 1295919550572838631247819983596733806859788957403169325509326258146877103642 1 1720505794444067493684054237668661975668255683573946537258759551417823511264
+
+                  DEFINIR COMO PASAR A TEST (PROMERO ESTE DEPLOY DEL PROXY DEL NFT)
+                  DE NFT ARREGLAR QUE SEA VEZ COMO ERC721 PARA la API de ASPECT DE ARGENT
+
+./proto_build.sh testnet acct2.key ./build/proxy.json <MAIN_CLASS_HASH> 1295919550572838631247819983596733806859788957403169325509326258146877103642 1 1720505794444067493684054237668661975668255683573946537258759551417823511264
 
 TESTNET account
 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0

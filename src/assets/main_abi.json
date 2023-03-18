@@ -29,6 +29,32 @@
     {
         "data": [
             {
+                "name": "implementation",
+                "type": "felt"
+            }
+        ],
+        "keys": [],
+        "name": "Upgraded",
+        "type": "event"
+    },
+    {
+        "data": [
+            {
+                "name": "previousAdmin",
+                "type": "felt"
+            },
+            {
+                "name": "newAdmin",
+                "type": "felt"
+            }
+        ],
+        "keys": [],
+        "name": "AdminChanged",
+        "type": "event"
+    },
+    {
+        "data": [
+            {
                 "name": "contract_address",
                 "type": "felt"
             }
@@ -38,15 +64,26 @@
         "type": "event"
     },
     {
-        "inputs": [
+        "data": [
             {
-                "name": "_owner",
+                "name": "res",
                 "type": "felt"
             }
         ],
-        "name": "constructor",
-        "outputs": [],
-        "type": "constructor"
+        "keys": [],
+        "name": "e1",
+        "type": "event"
+    },
+    {
+        "data": [
+            {
+                "name": "res",
+                "type": "felt"
+            }
+        ],
+        "keys": [],
+        "name": "e2",
+        "type": "event"
     },
     {
         "inputs": [
@@ -83,6 +120,17 @@
     {
         "inputs": [
             {
+                "name": "_challenge_number",
+                "type": "felt"
+            }
+        ],
+        "name": "mint",
+        "outputs": [],
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "name": "_player",
                 "type": "felt"
             }
@@ -112,6 +160,27 @@
         "outputs": [
             {
                 "name": "_resolved",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "_player",
+                "type": "felt"
+            },
+            {
+                "name": "_challenge_number",
+                "type": "felt"
+            }
+        ],
+        "name": "get_mint_status",
+        "outputs": [
+            {
+                "name": "_minted",
                 "type": "felt"
             }
         ],
@@ -160,6 +229,94 @@
             }
         ],
         "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "proxy_admin",
+                "type": "felt"
+            }
+        ],
+        "name": "initializer",
+        "outputs": [],
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "new_implementation",
+                "type": "felt"
+            }
+        ],
+        "name": "upgrade",
+        "outputs": [],
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getImplementationHash",
+        "outputs": [
+            {
+                "name": "implementation",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getAdmin",
+        "outputs": [
+            {
+                "name": "admin",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getPlayerCount",
+        "outputs": [
+            {
+                "name": "total",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "new_admin",
+                "type": "felt"
+            }
+        ],
+        "name": "setAdmin",
+        "outputs": [],
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "challenge_id",
+                "type": "felt"
+            },
+            {
+                "name": "new_class_hash",
+                "type": "felt"
+            },
+            {
+                "name": "new_points",
+                "type": "felt"
+            }
+        ],
+        "name": "updateChallenge",
+        "outputs": [],
         "type": "function"
     }
 ]

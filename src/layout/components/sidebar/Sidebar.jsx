@@ -6,8 +6,7 @@ import { sideMenu } from './menu.config.js';
 import * as FaIcons from "react-icons/fa"; //Now i get access to all the icons
 import * as AiIcons from "react-icons/ai";
 import { IconContext } from "react-icons";
-import "../../../layouts/Navbar.css";
-import ToggleSwitch from '../../../components/ToggleSwitch.js';
+import "./Navbar.css";
 
 class Sidebar extends React.Component {
   constructor(){

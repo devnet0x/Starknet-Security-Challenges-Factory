@@ -8,6 +8,7 @@ from starkware.cairo.common.math import assert_not_equal
 from starkware.cairo.common.math_cmp import is_le
 from starkware.starknet.common.syscalls import deploy,get_caller_address
 from starkware.cairo.common.alloc import alloc
+from starkware.cairo.common.uint256 import Uint256
 
 from openzeppelin.upgrades.library import Proxy
 
@@ -18,12 +19,19 @@ namespace ITestContract {
     }
 }
 
+// Interface to NFT
+@contract_interface
+namespace INFT {
+    func mint(to: felt, tokenId: Uint256, value: Uint256, data_len: felt, data: felt*){
+    }
+}
 // ######## Storage variables and structs
 
 // Struct to storage players challenge status.
 struct player_challenges_struct{
     address:felt,
     resolved:felt,
+    minted:felt,
 }
 
 // Define a storage variable for players challenge status.
@@ -134,7 +142,7 @@ func deploy_challenge{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_chec
     );
 
     //Assign challenge to player
-    let new_challenge = player_challenges_struct(address=new_contract_address,resolved=FALSE);
+    let new_challenge = player_challenges_struct(address=new_contract_address,resolved=FALSE,minted=FALSE);
     player_challenges.write(sender,_challenge_number,new_challenge);
 
     return (new_contract_address,);
@@ -174,7 +182,7 @@ func test_challenge{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
     //At this point we know challenge was completed sucessfully
 
     //Update player resolved challenges
-    let new_challenge = player_challenges_struct(address=current_player_challenge.address,resolved=TRUE);
+    let new_challenge = player_challenges_struct(address=current_player_challenge.address,resolved=TRUE,minted=FALSE);
     player_challenges.write(sender,_challenge_number,new_challenge);
     
     let (current_player) = player.read(sender);
@@ -207,6 +215,43 @@ func test_challenge{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
     return (_result=_result,);
 }
 
+// Function to mint an NFT after resolve a challenge
+@external
+func mint{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    _challenge_number: felt
+    ) {
+    alloc_locals;
+    let (sender) = get_caller_address();
+    let (current_player_challenge) = player_challenges.read(sender,_challenge_number);
+
+    //Check if is already minted
+    with_attr error_message("Challenge not resolved yet.") {
+        assert_not_equal (current_player_challenge.resolved,FALSE);
+    }
+
+    //Check if is already minted
+    with_attr error_message("Challenge already minted.") {
+        assert_not_equal (current_player_challenge.minted,TRUE);
+    }
+
+    // Mint NFT
+    let _tokenId : Uint256 = Uint256(_challenge_number, 0);
+    let _value : Uint256 = Uint256(1, 0);
+    let (_mint_data)=alloc();
+    INFT.mint(contract_address=0x032bddd4fd1ae7e63a356fdf9aaff85128915c2b0214ce8ba3908f95f1196b4d,
+            to=sender,
+            tokenId=_tokenId,
+            value=_value,
+            data_len=0,
+            data=_mint_data);
+
+    //Update player minted challenges
+    let new_challenge = player_challenges_struct(address=current_player_challenge.address,resolved=TRUE,minted=TRUE);
+    player_challenges.write(sender,_challenge_number,new_challenge);
+
+    return ();
+}
+
 // Get player total points
 @view
 func get_points{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
@@ -225,6 +270,16 @@ func get_challenge_status{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_
     alloc_locals;
     let (current_challenge)=player_challenges.read(_player,_challenge_number);
     return(_resolved=current_challenge.resolved,);
+}
+
+// Get if challenge is already completed by player
+@view
+func get_mint_status{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    _player: felt, _challenge_number: felt
+    ) -> (_minted:felt) {
+    alloc_locals;
+    let (current_challenge)=player_challenges.read(_player,_challenge_number);
+    return(_minted=current_challenge.minted,);
 }
 
 // Get player nickname
