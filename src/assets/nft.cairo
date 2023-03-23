@@ -5,51 +5,21 @@
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.alloc import alloc
-from openzeppelin.token.erc721.library import ERC721
-
-from ERC1155 import ERC1155
-from openzeppelin.introspection.erc165.library import ERC165
 from openzeppelin.security.pausable.library import Pausable
 from openzeppelin.access.ownable.library import Ownable
-from ERC721_metadata import (
+from openzeppelin.upgrades.library import Proxy
+from ERC1155 import ERC1155    //Used to mint nft
+from ERC721_metadata import (  //Used to manage url with strings length>31
     ERC721_Metadata_initializer,
     ERC721_Metadata_tokenURI,
     ERC721_Metadata_setBaseTokenURI,
 )
 
-@constructor
-func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    owner: felt
-) {
-    alloc_locals;
-    ERC1155.initializer('');
-    Ownable.initializer(owner);
 
-    let base_token_uri_len=3;
-    let (base_token_uri) = alloc();
-    assert base_token_uri[0]=184555836509371486645351865271880215103735885104792769856590766422418009699; // str_to_felt("https://raw.githubusercontent.c")
-    assert base_token_uri[1]=196873592232662656702780857357828712082600550956565573228678353357572222275; // str_to_felt("om/devnet0x/Starknet-Security-C")
-    assert base_token_uri[2]=595907657462138315887562308550827209532409212463; // str_to_felt("hallenges-Repo/main/")
-    let token_uri_suffix=199354445678;// str_to_felt(".json")
-    ERC721_Metadata_initializer();
-    ERC721_Metadata_setBaseTokenURI(base_token_uri_len, base_token_uri, token_uri_suffix);
 
-    let _name=5460803;//'SSC'
-    let _symbol=5460803;//'SSC'
-    ERC721.initializer(_name, _symbol);
-    return ();
-}
-
-//
-// Getters
-//
-
-@view
-func supportsInterface{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    interfaceId: felt
-) -> (success: felt) {
-    return ERC165.supports_interface(interfaceId);
-}
+// ******************************************
+// ******** ERC1155 GETTERS FUNCTIONS *******
+// ******************************************
 
 @view
 func tokenURI{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
@@ -58,13 +28,6 @@ func tokenURI{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     alloc_locals;
     let (token_uri_len, token_uri) = ERC721_Metadata_tokenURI(token_id);
     return (token_uri_len=token_uri_len, token_uri=token_uri);
-}
-
-@view
-func balanceOf{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    account: felt, id: Uint256
-) -> (balance: Uint256) {
-    return ERC1155.balance_of(account, id);
 }
 
 @view
@@ -77,41 +40,43 @@ func owner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() ->
     return Ownable.owner();
 }
 
-//-------------
-// @view
-// func uri{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(token_id: Uint256) -> (
-//     token_uri_len: felt, token_uri: felt*
-// ) {
-//         alloc_locals;
-//     let (token_uri_len, token_uri) = ERC721_Metadata_tokenURI(token_id);
-//     return (token_uri_len=token_uri_len, token_uri=token_uri);
-// }
+// ******************************************
+// ******** ERC721 GETTERS FUNCTIONS ********
+// ******************************************-
 
-// @view
-// func balanceOfBatch{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-//     accounts_len: felt, accounts: felt*, ids_len: felt, ids: Uint256*
-// ) -> (balances_len: felt, balances: Uint256*) {
-//     return ERC1155.balance_of_batch(accounts_len, accounts, ids_len, ids);
-// }
+@view
+func name{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (name: felt) {
+    alloc_locals;
+    let _name=8788796431866658658398952019965843793638368666295317285909331142003;//'Starknet Security Challenges'
+    return (_name,);
+}
+
+@view
+func symbol{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (symbol: felt) {
+    alloc_locals;
+    let _symbol=5460803;//'SSC'
+    return (_symbol,);
+}
+
+// ******************************************
+// **** ERC1155 BLOCKED GETTERS FUNCTIONS ***
+// ******************************************
+@view
+func balanceOf{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    owner: felt
+) -> (balance: Uint256) {
+    Ownable.assert_only_owner();
+    // This not working because needs tokenId as function parameter
+    return ERC1155.balance_of(owner, Uint256(0,0));
+}
 
 @view
 func isApprovedForAll{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     account: felt, operator: felt
 ) -> (approved: felt) {
+    Ownable.assert_only_owner();
+    // This doent work, this nft cant be transfered
     return ERC1155.is_approved_for_all(account, operator);
-}
-
-//NFT
-@view
-func name{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (name: felt) {
-    let (name) = ERC721.name();
-    return (name,);
-}
-
-@view
-func symbol{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (symbol: felt) {
-    let (symbol) = ERC721.symbol();
-    return (symbol,);
 }
 
 @view
@@ -120,8 +85,9 @@ func ownerOf{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(tokenId: Uint256) -> (owner: felt){
-        let (owner: felt) = ERC721.owner_of(tokenId);
-        return (owner,);
+        Ownable.assert_only_owner();
+        // This doesnt work, just for compatibility with erc721
+        return (0,);
     }
 
 @view
@@ -130,13 +96,14 @@ func getApproved{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(tokenId: Uint256) -> (approved: felt){
-        let (approved: felt) = ERC721.get_approved(tokenId);
-        return (approved,);
+        Ownable.assert_only_owner();
+        // This doesnt work, just for compatibility with erc721
+        return (0,);
     }
 
-//
-// Externals
-//
+// ******************************************
+// ****** ERC1155 EXTERNAL FUNCTIONS ********
+// ******************************************
 
 @external
 func transferOwnership{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
@@ -148,25 +115,37 @@ func transferOwnership{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
 
 @external
 func pause{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
-    Ownable.assert_only_owner();
+    Proxy.assert_only_admin();
     Pausable._pause();
     return ();
 }
 
 @external
 func unpause{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
-    Ownable.assert_only_owner();
+    Proxy.assert_only_admin();
     Pausable._unpause();
     return ();
 }
 
 @external
 func mint{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    to: felt, tokenId: Uint256, value: Uint256, data_len: felt, data: felt*
+    to: felt, tokenId: Uint256
 ) {
     Pausable.assert_not_paused();
     Ownable.assert_only_owner();
-    ERC1155._mint(to, tokenId, value, data_len, data);
+    let (data:felt*) = alloc();
+    ERC1155._mint(to, tokenId, Uint256(1,0), 0, data);
+    return ();
+}
+
+@external
+func safeMint{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    to: felt, tokenId: Uint256, data_len: felt, data: felt*, tokenURI: felt
+) {
+    Pausable.assert_not_paused();
+    Ownable.assert_only_owner();
+    let (data:felt*) = alloc();
+    ERC1155._mint(to, tokenId, Uint256(1,0), 0, data);
     return ();
 }
 
@@ -175,75 +154,20 @@ func setTokenURI{pedersen_ptr: HashBuiltin*, syscall_ptr: felt*, range_check_ptr
     base_token_uri_len: felt, base_token_uri: felt*, token_uri_suffix: felt
 ) {
     Pausable.assert_not_paused();
-    Ownable.assert_only_owner();
+    Proxy.assert_only_admin();
     ERC721_Metadata_setBaseTokenURI(base_token_uri_len, base_token_uri, token_uri_suffix);
     return ();
 }
 
-//--------------------
-@external
-func setApprovalForAll{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    operator: felt, approved: felt
-) {
-    ERC1155.set_approval_for_all(operator, approved);
-    return ();
-}
-
-@external
-func safeTransferFrom{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    from_: felt, to: felt, id: Uint256, value: Uint256, data_len: felt, data: felt*
-) {
-    ERC1155.safe_transfer_from(from_, to, id, value, data_len, data);
-    return ();
-}
-
-// @external
-// func safeBatchTransferFrom{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-//     from_: felt,
-//     to: felt,
-//     ids_len: felt,
-//     ids: Uint256*,
-//     values_len: felt,
-//     values: Uint256*,
-//     data_len: felt,
-//     data: felt*,
-// ) {
-//     ERC1155.safe_batch_transfer_from(from_, to, ids_len, ids, values_len, values, data_len, data);
-//     return ();
-// }
-
-// @external
-// func mintBatch{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-//     to: felt,
-//     ids_len: felt,
-//     ids: Uint256*,
-//     values_len: felt,
-//     values: Uint256*,
-//     data_len: felt,
-//     data: felt*,
-// ) {
-//     Ownable.assert_only_owner();
-//     ERC1155._mint_batch(to, ids_len, ids, values_len, values, data_len, data);
-//     return ();
-// }
-
 @external
 func burn{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    from_: felt, id: Uint256, value: Uint256
+    from_: felt, id: Uint256
 ) {
-    ERC1155.assert_owner_or_approved(owner=from_);
-    ERC1155._burn(from_, id, value);
+    Proxy.assert_only_admin();
+    //ERC1155.assert_owner_or_approved(owner=from_); //Token owner cant burn, only contract owner
+    ERC1155._burn(from_, id, Uint256(1,0));
     return ();
 }
-
-// @external
-// func burnBatch{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-//     from_: felt, ids_len: felt, ids: Uint256*, values_len: felt, values: Uint256*
-// ) {
-//     ERC1155.assert_owner_or_approved(owner=from_);
-//     ERC1155._burn_batch(from_, ids_len, ids, values_len, values);
-//     return ();
-// }
 
 @external
 func renounceOwnership{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
@@ -251,7 +175,32 @@ func renounceOwnership{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
     return ();
 }
 
-//--- NFT
+// ******************************************
+// ******** ERC1155 BLOCKED FUNCTIONS *******
+// ******************************************
+
+@external
+func setApprovalForAll{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    operator: felt, approved: felt
+) {
+    Ownable.assert_only_owner();
+    // This doent work, this nft cant be transfered
+    return ();
+}
+
+@external
+func safeTransferFrom{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    from_: felt, to: felt, id: Uint256, value: Uint256, data_len: felt, data: felt*
+) {
+    Ownable.assert_only_owner();
+    // This doent work, this nft cant be transfered
+    return ();
+}
+
+
+// ******************************************
+// ***** ERC721 COMPATIBILITY FUNCTIONS *****
+// ******************************************
 
 @external
 func approve{
@@ -259,7 +208,8 @@ func approve{
         syscall_ptr: felt*,
         range_check_ptr
     }(to: felt, tokenId: Uint256){
-        ERC721.approve(to, tokenId);
+        Ownable.assert_only_owner();
+        // This doesnt work, just for compatibility with erc721
         return ();
     }
 
@@ -274,6 +224,99 @@ func transferFrom{
         to: felt,
         tokenId: Uint256
     ){
-        //ERC721Enumerable.transfer_from(from_, to, tokenId);
+        Ownable.assert_only_owner();
+        // This doesnt work, just for compatibility with erc721
         return ();
     }
+
+// ******************************************
+// ** FOR BRAAVOS COMPATIBILITY FUNCTIONS ***
+// ******************************************
+
+@view
+func uri{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(token_id: Uint256) -> (
+    token_uri_len: felt, token_uri: felt*
+) {
+    alloc_locals;
+    let (token_uri_len, token_uri) = ERC721_Metadata_tokenURI(token_id);
+    return (token_uri_len=token_uri_len, token_uri=token_uri);
+}
+
+@view
+func balanceOfBatch{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    accounts_len: felt, accounts: felt*, ids_len: felt, ids: Uint256*
+) -> (balances_len: felt, balances: Uint256*) {
+    Ownable.assert_only_owner();
+    // This doesnt work, just for compatibility with braavos
+    return ERC1155.balance_of_batch(accounts_len, accounts, ids_len, ids);
+}
+
+// ******************************************
+// ************ PROXY FUNCTIONS *************
+// ******************************************
+
+//
+// Initializer
+//
+
+@external
+func initializer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    proxy_admin: felt,  // Account2  is the proxy admin
+    owner: felt         // Main proxy address is the owner
+) {
+     alloc_locals;
+    ERC1155.initializer('');
+    Ownable.initializer(owner);
+
+    let base_token_uri_len=3;
+    let (base_token_uri) = alloc();
+    assert base_token_uri[0]=184555836509371486645351865271880215103735885104792769856590766422418009699; // str_to_felt("https://raw.githubusercontent.c")
+    assert base_token_uri[1]=196873592232662656702780857357828712082600550956565573228678353357572222275; // str_to_felt("om/devnet0x/Starknet-Security-C")
+    assert base_token_uri[2]=595907657462138315887562308550827209532409212463; // str_to_felt("hallenges-Repo/main/")
+    let token_uri_suffix=199354445678;// str_to_felt(".json")
+    ERC721_Metadata_initializer();
+    ERC721_Metadata_setBaseTokenURI(base_token_uri_len, base_token_uri, token_uri_suffix);
+
+    Proxy.initializer(proxy_admin);
+    return ();
+}
+
+//
+// Upgrades
+//
+
+@external
+func upgrade{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    new_implementation: felt
+) {
+    Proxy.assert_only_admin();
+    Proxy._set_implementation_hash(new_implementation);
+    return ();
+}
+
+//
+// Getters
+//
+
+@view
+func getImplementationHash{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
+    implementation: felt
+) {
+    return Proxy.get_implementation_hash();
+}
+
+@view
+func getAdmin{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (admin: felt) {
+    return Proxy.get_admin();
+}
+
+//
+// Setters
+//
+
+@external
+func setAdmin{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(new_admin: felt) {
+    Proxy.assert_only_admin();
+    Proxy._set_admin(new_admin);
+    return ();
+}

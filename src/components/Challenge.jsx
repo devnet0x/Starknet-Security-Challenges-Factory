@@ -8,7 +8,18 @@ import { useState } from 'react'
 import mainABI from '../assets/main_abi.json'
 import global from '../global.jsx'
 
-import challengeCode from '../assets/challenge1.cairo'
+import challengeCode1 from '../assets/challenge1.cairo'
+import challengeCode2 from '../assets/challenge2.cairo'
+import challengeCode3 from '../assets/challenge3.cairo'
+import challengeCode4 from '../assets/challenge4.cairo'
+import challengeCode5 from '../assets/challenge5.cairo'
+import challengeCode6 from '../assets/challenge6.cairo'
+import challengeCode7 from '../assets/challenge7.cairo'
+import challengeCode8 from '../assets/challenge8.cairo'
+import challengeCode9 from '../assets/challenge9.cairo'
+import challengeCode10 from '../assets/challenge10.cairo'
+import challengeCode11 from '../assets/challenge11.cairo'
+
 import '../App.css';
 
 import { StarknetConfig, InjectedConnector } from '@starknet-react/core'
@@ -70,7 +81,7 @@ function ClaimNFT({challengeNumber}){
   if (error) return <span>Error: {error}</span>
   return(
       <div>
-      {data && !parseInt(data[0].toString())?<div>Already Resolved<br /><ChallengeMint challengeNumber={challengeNumber} /></div>:<div>Already Resolved<br />Already Minted <a href={'https://testnet.aspect.co/asset/0x151b390486ddd6912c2760de2b9d713443e13b132760316be94dd0da8de6936/'+challengeNumber} target='_blank'>(View)</a></div>}
+      {data && !parseInt(data[0].toString())?<div>Already Resolved<br /><ChallengeMint challengeNumber={challengeNumber} /></div>:<div>Already Resolved<br />Already Minted <a href={'https://testnet.aspect.co/asset/0x007d85f33b50c06d050cca1889decca8a20e5e08f3546a7f010325cb06e8963f/'+challengeNumber} target='_blank'>(View)</a></div>}
       </div>
   ) 
 }
@@ -213,8 +224,21 @@ function ConnectWallet({challengeNumber}) {
   
 
 export default function Challenge({challengeNumber}) {
-    const [text, setText] = React.useState();
-    fetch(challengeCode)
+  const [text, setText] = React.useState()  
+    const challengeCode=[];
+    challengeCode[1]=challengeCode1;
+    challengeCode[2]=challengeCode2;
+    challengeCode[3]=challengeCode3;
+    challengeCode[4]=challengeCode4;
+    challengeCode[5]=challengeCode5;
+    challengeCode[6]=challengeCode6;
+    challengeCode[7]=challengeCode7;
+    challengeCode[8]=challengeCode8;
+    challengeCode[9]=challengeCode9;
+    challengeCode[10]=challengeCode10;
+    challengeCode[11]=challengeCode11;
+
+    fetch(challengeCode[challengeNumber])
       .then((response) => response.text())
       .then((textContent) => {
         setText(textContent);
@@ -253,12 +277,12 @@ export default function Challenge({challengeNumber}) {
     descChallengeEn[3]= "It’s time to set your nickname! This nickname is how you’ll show up on the leaderboard.\n\n \
     The game smart contract keeps track of a nickname for every player.\n\n \
     To complete this challenge, set your nickname to a non-empty string. The smart contract  \
-    is running on the Goerli test network at the address {global.MAIN_CONTRACT_ADDRESS}.\n\n \
+    is running on the Goerli test network at the address "+global.MAIN_CONTRACT_ADDRESS.toString()+".\n\n \
     Here’s the code for this challenge:";
     descChallengeEs[3]= "¡Es hora de establecer tu nickname!Es la forma en que aparecerás en la tabla de clasificación.\n\n \
     El contrato inteligente del juego tiene un registro de nicknames para cada jugador.\n\n \
     Para completar este reto, establezca su apodo en una cadena no vacía. El contrato inteligente \
-    se está ejecutando en Starknet Goerli Testnet en la dirección {global.MAIN_CONTRACT_ADDRESS}.\n\n \
+    se está ejecutando en Starknet Goerli Testnet en la dirección "+global.MAIN_CONTRACT_ADDRESS.toString()+".\n\n \
     Aquí está el código para este reto:";
 
     titleChallenge[4]="GUESS A NUMBER";

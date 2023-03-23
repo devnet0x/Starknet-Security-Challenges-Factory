@@ -22,7 +22,7 @@ namespace ITestContract {
 // Interface to NFT
 @contract_interface
 namespace INFT {
-    func mint(to: felt, tokenId: Uint256, value: Uint256, data_len: felt, data: felt*){
+    func mint(to: felt, tokenId: Uint256){
     }
 }
 // ######## Storage variables and structs
@@ -224,7 +224,7 @@ func mint{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     let (sender) = get_caller_address();
     let (current_player_challenge) = player_challenges.read(sender,_challenge_number);
 
-    //Check if is already minted
+    //Check if is already resolved
     with_attr error_message("Challenge not resolved yet.") {
         assert_not_equal (current_player_challenge.resolved,FALSE);
     }
@@ -236,14 +236,9 @@ func mint{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
 
     // Mint NFT
     let _tokenId : Uint256 = Uint256(_challenge_number, 0);
-    let _value : Uint256 = Uint256(1, 0);
-    let (_mint_data)=alloc();
-    INFT.mint(contract_address=0x032bddd4fd1ae7e63a356fdf9aaff85128915c2b0214ce8ba3908f95f1196b4d,
+    INFT.mint(contract_address=0x007d85f33b50c06d050cca1889decca8a20e5e08f3546a7f010325cb06e8963f, //NFT proxy contract address
             to=sender,
-            tokenId=_tokenId,
-            value=_value,
-            data_len=0,
-            data=_mint_data);
+            tokenId=_tokenId);
 
     //Update player minted challenges
     let new_challenge = player_challenges_struct(address=current_player_challenge.address,resolved=TRUE,minted=TRUE);

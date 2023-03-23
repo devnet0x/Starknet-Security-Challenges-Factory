@@ -1,7 +1,7 @@
 %lang starknet
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.bool import FALSE, TRUE
-from starkware.starknet.common.syscalls import get_contract_address,get_caller_address
+from starkware.starknet.common.syscalls import get_contract_address,get_caller_address,get_tx_info
 from starkware.cairo.common.uint256 import (Uint256,uint256_add,uint256_le)
 from openzeppelin.token.erc20.IERC20 import IERC20
 
@@ -100,8 +100,9 @@ func isComplete{
     range_check_ptr,
 }()->(output : felt) {
     alloc_locals;
+    let (tx_info) = get_tx_info();
     with_attr error_message("Caller is not the owner."){
-        assert msg_sender()=get_owner();
+        assert tx_info.account_contract_address=get_owner();
     }
     let (total_balance)=IERC20.balanceOf(L2_ETHER_ADDRESS,this());
     IERC20.transfer(L2_ETHER_ADDRESS,msg_sender(),total_balance);
