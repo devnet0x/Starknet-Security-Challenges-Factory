@@ -15,10 +15,14 @@ import challengeCode4 from '../assets/challenge4.cairo'
 import challengeCode5 from '../assets/challenge5.cairo'
 import challengeCode6 from '../assets/challenge6.cairo'
 import challengeCode7 from '../assets/challenge7.cairo'
-import challengeCode8 from '../assets/challenge8.cairo'
+import challengeCode8 from '../assets/challenge8_main.cairo'
+import challenge8ERC20Code from '../assets/challenge8_erc20.cairo'
+import challenge8ERC223Code from '../assets/challenge8_erc223.cairo'
+import challenge8DEXCode from '../assets/challenge8_dex.cairo'
 import challengeCode9 from '../assets/challenge9.cairo'
 import challengeCode10 from '../assets/challenge10.cairo'
 import challengeCode11 from '../assets/challenge11.cairo'
+import challengeCode12 from '../assets/challenge12.cairo'
 
 import '../App.css';
 
@@ -81,7 +85,7 @@ function ClaimNFT({challengeNumber}){
   if (error) return <span>Error: {error}</span>
   return(
       <div>
-      {data && !parseInt(data[0].toString())?<div>Already Resolved<br /><ChallengeMint challengeNumber={challengeNumber} /></div>:<div>Already Resolved<br />Already Minted <a href={'https://testnet.aspect.co/asset/0x007d85f33b50c06d050cca1889decca8a20e5e08f3546a7f010325cb06e8963f/'+challengeNumber} target='_blank'>(View)</a></div>}
+      {data && !parseInt(data[0].toString())?<div>Already Resolved<br /><ChallengeMint challengeNumber={challengeNumber} /></div>:<div>Already Resolved<br />Already Minted <a href={'https://mintsquare.io/asset/starknet-testnet/0x007d85f33b50c06d050cca1889decca8a20e5e08f3546a7f010325cb06e8963f/'+challengeNumber} target='_blank'>(View)</a></div>}
       </div>
   ) 
 }
@@ -224,7 +228,7 @@ function ConnectWallet({challengeNumber}) {
   
 
 export default function Challenge({challengeNumber}) {
-  const [text, setText] = React.useState()  
+    const [text, setText] = React.useState()  
     const challengeCode=[];
     challengeCode[1]=challengeCode1;
     challengeCode[2]=challengeCode2;
@@ -237,12 +241,38 @@ export default function Challenge({challengeNumber}) {
     challengeCode[9]=challengeCode9;
     challengeCode[10]=challengeCode10;
     challengeCode[11]=challengeCode11;
+    challengeCode[12]=challengeCode12;
 
     fetch(challengeCode[challengeNumber])
       .then((response) => response.text())
       .then((textContent) => {
         setText(textContent);
       });
+    
+    const [text2, setText2] = React.useState();
+    const [text3, setText3] = React.useState(); 
+    const [text4, setText4] = React.useState();
+    
+    if (challengeNumber==8){
+      fetch(challenge8ERC223Code)
+        .then((response) => response.text())
+        .then((textContent) => {
+          setText2(textContent); 
+        });
+      
+      fetch(challenge8ERC20Code)
+        .then((response) => response.text())
+        .then((textContent) => {
+          setText3(textContent); 
+        });
+      
+      fetch(challenge8DEXCode)
+        .then((response) => response.text())
+        .then((textContent) => {
+          setText4(textContent); 
+        });
+    }
+    
     const textOptions = ["EN", "ES"];
     const chkID = "checkboxID";
     const [lang, setLang] = useState(true);
@@ -315,9 +345,33 @@ export default function Challenge({challengeNumber}) {
    ¿Hay alguna manera de que puedas robarle los tokens?\n \
    Código fuente del reto:";
 
-    titleChallenge[8]="";
-    descChallengeEn[8]= "";
-    descChallengeEs[8]= "";
+    titleChallenge[8]="It's always sunny in decentralized exchanges";
+    descChallengeEn[8]= "I bet you are familiar with decentralized exchanges: a magical place where one can exchange different tokens. \
+    InsecureDexLP is exactly that: a very insecure Uniswap-kind-of decentralized exchange. \
+    Recently, the $ISEC token got listed in this dex and can be traded against a not-so-popular token called $SET.\n\n \
+    \
+    📌 Upon deployment, InSecureumToken and SimpleERC223Token mint an initial supply of 100 $ISEC and 100 $SET to the contract deployer.\n \
+    📌 The InsecureDexLP operates with $ISEC and $SET.\n \
+    📌 The dex has an initial liquidity of 10 $ISEC and 10 $SET, provided by deployer. This quantity can be increased by anyone through token deposits.\n \
+    📌 Adding liquidity to the dex rewards liquidity pool tokens (LP tokens), which can be redeemed in any moment for the original funds.\n \
+    📌 Also the deployer graciously airdrops the challenger (you!) 1 $ISEC and 1 $SET.\n\n \
+    \
+    Will you be able to drain most of InsecureDexLP's $ISEC/$SET liquidity? 😈😈😈\n \
+    Build a smart contract to exploit this vulnerability and call it with call_exploit function.\n\n \
+    Main deployer contract with challenge setup:";
+    descChallengeEs[8]= "Apuesto a que está familiarizado con los exchange descentralizados: un lugar mágico donde se pueden intercambiar diferentes tokens. \
+    InsecureDexLP es exactamente eso: un tipo de exchange descentralizado estilo Uniswap pero muy inseguro. \
+    Recientemente, el token $ISEC se incluyó en este dex y se puede cambiar por un token no tan popular llamado $SET.\n\n \
+    \
+    📌 Tras la implementación, InSecureumToken y SimpleERC223Token emiten un suministro inicial de 100 $ISEC y 100 $SET para el implementador (deployer) del contrato.\n \
+    📌 El InsecureDexLP opera con $ISEC y $SET.\n \
+    📌 El dex tiene una liquidez inicial de 10 $ISEC y 10 $SET, proporcionada por el implementador (deployer). Esta cantidad puede ser incrementada por cualquier persona que deposite tokens.\n \
+    📌 Agregando liquidez al dex recompensa con tokens del pool de liquidez (tokens LP), que se pueden canjear en cualquier momento por los fondos originales.\n \
+    📌 Además, el implementador emite gentilmente al retador (¡a ti!) 1 $ISEC y 1 $SET.\n\n \
+    \
+    ¿Podrás drenar la mayor parte de la liquidez de $ISEC/$SET de InsecureDexLP? 😈😈😈\n \
+    Crea un contrato inteligente para explotar esta vulnerabilidad y llámalo con la función call_exploit.\n\n \
+    Main deployer contract with challenge setup:";
 
     titleChallenge[9]="FAL1OUT";
     descChallengeEn[9]= "Claim ownership of the contract below to complete this level:";
@@ -333,6 +387,10 @@ export default function Challenge({challengeNumber}) {
     descChallengeEn[11]= "Claim ownership of the contract below to complete this level:";
     descChallengeEs[11]= "Reclama la propiedad del contrato a continuación para completar este nivel:";
 
+    titleChallenge[12]="VAULT";
+    descChallengeEn[12]= "Unlock the vault to pass the level!.";
+    descChallengeEs[12]= "Desbloquea la bóveda para pasar de nivel!.";
+
     return (
       <div className="App" class='flex-table row' role='rowgroup'>
         <div class='flex-row-emp' role='cell'></div>
@@ -346,9 +404,29 @@ export default function Challenge({challengeNumber}) {
             {lang?descChallengeEn[challengeNumber]:descChallengeEs[challengeNumber]}
             </div>
             <div align='justify'>
-              <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
-                {text}
-              </SyntaxHighlighter>
+              {challengeNumber==8?<div>
+                            <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
+                            {text}
+                            </SyntaxHighlighter>
+                            Insecure DEX:
+                            <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
+                              {text4}
+                            </SyntaxHighlighter>
+                            ISET ERC223:
+                            <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
+                              {text2}
+                            </SyntaxHighlighter>
+                            ISEC ERC20:
+                            <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
+                              {text3}
+                            </SyntaxHighlighter>
+                          </div>:
+                          <div>
+                            <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
+                            {text}
+                            </SyntaxHighlighter>
+                          </div>
+                          }
             </div>
             <ConnectWallet challengeNumber={challengeNumber} />
           </StarknetConfig>

@@ -3,6 +3,7 @@ import * as AiIcons from "react-icons/ai";
 import * as IoIcons from "react-icons/io";
 import * as BsIcons from "react-icons/bs";
 import * as GiIcons from "react-icons/gi";
+import * as CiIcons from "react-icons/ci";
   
   export const sideMenu = [
     {
@@ -88,6 +89,11 @@ import * as GiIcons from "react-icons/gi";
               label: 'Telephone(300 pts)',
               Icon: GiIcons.GiRotaryPhone,
               to: 'challenge11',
+            },
+            {
+              label: 'Vault(700 pts)',
+              Icon: CiIcons.CiVault,
+              to: 'challenge12',
             },
           ],
         },

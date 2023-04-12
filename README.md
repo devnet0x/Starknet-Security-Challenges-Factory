@@ -58,9 +58,10 @@ protostar invoke --contract-address 0x0669509353516162399fa39c771e578ace956fb7f2
 protostar invoke --contract-address 0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd --function "updateChallenge" --network testnet --max-fee auto --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --inputs 6 509460881826382358753513407542140252246689935694638291974509725008424896605 300
 protostar invoke --contract-address 0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd --function "updateChallenge" --network testnet --max-fee auto --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --inputs 7 1529006953307469816424184439819570255482354784921751969205932052064166548773 500
 protostar invoke --contract-address 0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd --function "updateChallenge" --network testnet --max-fee auto --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --inputs 8 2541513634400202439989150743186800759218763417772159699724177676341034823375 1500
-protostar invoke --contract-address 0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd --function "updateChallenge" --network testnet --max-fee auto --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --inputs 9 545858728179457734741843161691485775885915783754774412084571145251249622279 500
-protostar invoke --contract-address 0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd --function "updateChallenge" --network testnet --max-fee auto --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --inputs 10 3505238357554179806589872945641373415162648036216351712792606011706202981006 700
+protostar invoke --contract-address 0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd --function "updateChallenge" --network testnet --max-fee auto --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --inputs 9 1006496034686303693987544354654581672233653511491418035607541540218434476386 500
+protostar invoke --contract-address 0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd --function "updateChallenge" --network testnet --max-fee auto --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --inputs 10 2015742561013441554959996173910038832233769986596628897062082283922915148398 700
 protostar invoke --contract-address 0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd --function "updateChallenge" --network testnet --max-fee auto --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --inputs 11 1776020012526830053623742027519185568683529369535560571723486745965324138888 300
+protostar invoke --contract-address 0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd --function "updateChallenge" --network testnet --max-fee auto --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --inputs 12 2073266125953766656779488262002327289955153953103206465240368690760885020661 500
 ```
 
 # MAIN UPGRADE
@@ -189,7 +190,7 @@ git push
 ```
 # ADD CHALLENGE REACT
 ```
-Clone component Challenge.jsx
+Add to component Challenge.jsx
 Add option to layout/menu_config.js
 Add page route to App.js
 Restore testnet address in global.jsx

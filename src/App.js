@@ -4,7 +4,6 @@ import Home from "./components/Home";
 import Leaderboard from "./components/Leaderboard";
 import Nopage from "./components/Nopage";
 import Challenge from "./components/Challenge";
-import Challenge8 from "./components/Challenge8";
 
 export default function App() {
   return (
@@ -20,10 +19,11 @@ export default function App() {
           <Route path="/cte22/Challenge5" element={<Challenge challengeNumber={5} />} />
           <Route path="/cte22/Challenge6" element={<Challenge challengeNumber={6} />} />
           <Route path="/amazex22/challenge7" element={<Challenge challengeNumber={7} />} />
-          <Route path="/amazex22/challenge8" element={<Challenge8 />} />
+          <Route path="/amazex22/challenge8" element={<Challenge challengeNumber={8}  />} />
           <Route path="/ethernaut22/challenge9" element={<Challenge challengeNumber={9} />} />
           <Route path="/ethernaut22/challenge10" element={<Challenge challengeNumber={10} />} />
           <Route path="/ethernaut22/challenge11" element={<Challenge challengeNumber={11} />} />
+          <Route path="/ethernaut22/challenge12" element={<Challenge challengeNumber={12} />} />
           <Route path="*" element={<Nopage />} />
         </Route>
       </Routes>
