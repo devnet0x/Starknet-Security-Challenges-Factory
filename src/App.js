@@ -24,6 +24,7 @@ export default function App() {
           <Route path="/ethernaut22/challenge10" element={<Challenge challengeNumber={10} />} />
           <Route path="/ethernaut22/challenge11" element={<Challenge challengeNumber={11} />} />
           <Route path="/ethernaut22/challenge12" element={<Challenge challengeNumber={12} />} />
+          <Route path="/ethernaut22/challenge13" element={<Challenge challengeNumber={13} />} />
           <Route path="*" element={<Nopage />} />
         </Route>
       </Routes>

@@ -23,6 +23,7 @@ import challengeCode9 from '../assets/challenge9.cairo'
 import challengeCode10 from '../assets/challenge10.cairo'
 import challengeCode11 from '../assets/challenge11.cairo'
 import challengeCode12 from '../assets/challenge12.cairo'
+import challengeCode13 from '../assets/challenge13.cairo'
 
 import '../App.css';
 
@@ -242,6 +243,7 @@ export default function Challenge({challengeNumber}) {
     challengeCode[10]=challengeCode10;
     challengeCode[11]=challengeCode11;
     challengeCode[12]=challengeCode12;
+    challengeCode[13]=challengeCode13;
 
     fetch(challengeCode[challengeNumber])
       .then((response) => response.text())
@@ -391,6 +393,14 @@ export default function Challenge({challengeNumber}) {
     descChallengeEn[12]= "Unlock the vault to pass the level!.";
     descChallengeEs[12]= "Desbloquea la bóveda para pasar de nivel!.";
 
+    titleChallenge[13]="NAUGHTY COIN";
+    descChallengeEn[13]= "NaughtCoin is an ERC20 token and you're already holding all of them. The catch is that you'll only be able  \
+    to transfer them after a 10 year lockout period. Can you figure out how to get them out to another address so that you can transfer  \
+    them freely? Complete this level by getting your token balance to 0.";
+    descChallengeEs[13]= "NaughtCoin es un token ERC20 token y tu ya tienes 10.000 de ellos. El problema es que tu solo serás capaz de  \
+    transferirlos después de un periodo de 10 años de bloqueo. Te puedes imaginar como conseguir sacarlos a otra cuenta de manera que puedas transferirlos  \
+    libremente? Completa este nivel dejando el saldo de tu NauthCoin en 0.";
+
     return (
       <div className="App" class='flex-table row' role='rowgroup'>
         <div class='flex-row-emp' role='cell'></div>
@@ -420,12 +430,17 @@ export default function Challenge({challengeNumber}) {
                             <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
                               {text3}
                             </SyntaxHighlighter>
-                          </div>:
+                          </div>:challengeNumber>11?
                           <div>
-                            <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
+                            <SyntaxHighlighter language="rust" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
                             {text}
                             </SyntaxHighlighter>
-                          </div>
+                          </div>:
+                          <div>
+                          <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
+                          {text}
+                          </SyntaxHighlighter>
+                        </div>
                           }
             </div>
             <ConnectWallet challengeNumber={challengeNumber} />
