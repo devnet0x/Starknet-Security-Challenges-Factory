@@ -1,5 +1,7 @@
-# TO RUN
+# TO INSTALL
 ```
+git clone https://github.com/devnet0x/Starknet-Security-Challenges-Factory
+npm install
 npm start run
 ```
 # FIRST INSTALL
@@ -189,12 +191,11 @@ git add -A
 git commit -m "Add new challenge"
 git push
 ```
-# ADD CHALLENGE REACT
+# ADD NEW CHALLENGE TO REACT
 ```
-Add to component Challenge.jsx
-Add option to layout/menu_config.js
-Add page route to App.js
-Restore testnet address in global.jsx
+Add to src/components/Challenge.jsx
+Add option to src/layout/components/menu_config.js
+Add page route to src/App.js
 Add in readme.md initial setup
-npm start run
+Check testnet proxy address in src/global.jsx
 ```

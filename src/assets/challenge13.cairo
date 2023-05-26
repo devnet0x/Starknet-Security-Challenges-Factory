@@ -60,6 +60,14 @@ mod ERC20_vulnerable {
         transfer_helper(sender, recipient, amount);
     }
 
+    #[view]
+    fn isComplete() -> bool {
+        let tx_info = starknet::get_tx_info().unbox();
+        let tx_origin: ContractAddress = tx_info.account_contract_address;
+        assert(balances::read(tx_origin)==u256 { low:0_u128, high:0_u128 },'Challenge not resolved');
+        return(true);
+    }
+
     // From here all function are as in the original ERC20 (not modified).
 
     #[view]

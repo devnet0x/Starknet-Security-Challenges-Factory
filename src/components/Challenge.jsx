@@ -24,6 +24,9 @@ import challengeCode10 from '../assets/challenge10.cairo'
 import challengeCode11 from '../assets/challenge11.cairo'
 import challengeCode12 from '../assets/challenge12.cairo'
 import challengeCode13 from '../assets/challenge13.cairo'
+import challengeCode14 from '../assets/challenge14.cairo'
+import challengeCode14Wallet from '../assets/challenge14_wallet.cairo'
+import challengeCode14Coin from '../assets/challenge14_coin.cairo'
 
 import '../App.css';
 
@@ -244,6 +247,7 @@ export default function Challenge({challengeNumber}) {
     challengeCode[11]=challengeCode11;
     challengeCode[12]=challengeCode12;
     challengeCode[13]=challengeCode13;
+    challengeCode[14]=challengeCode14;
 
     fetch(challengeCode[challengeNumber])
       .then((response) => response.text())
@@ -272,6 +276,20 @@ export default function Challenge({challengeNumber}) {
         .then((response) => response.text())
         .then((textContent) => {
           setText4(textContent); 
+        });
+    }
+
+    if (challengeNumber==14){
+      fetch(challengeCode14Wallet)
+        .then((response) => response.text())
+        .then((textContent) => {
+          setText2(textContent); 
+        });
+      
+      fetch(challengeCode14Coin)
+        .then((response) => response.text())
+        .then((textContent) => {
+          setText3(textContent); 
         });
     }
     
@@ -401,6 +419,12 @@ export default function Challenge({challengeNumber}) {
     transferirlos después de un periodo de 10 años de bloqueo. Te puedes imaginar como conseguir sacarlos a otra cuenta de manera que puedas transferirlos  \
     libremente? Completa este nivel dejando el saldo de tu NauthCoin en 0.";
 
+    titleChallenge[14]="GOOD SAMARITAN";
+    descChallengeEn[14]= "This instance represents a Good Samaritan that is wealthy and ready to donate some coins to anyone requesting it. \
+    Would you be able to drain all the balance from his Wallet?";
+    descChallengeEs[14]= "Esta instancia representa a un Buen Samaritano que es muy rico y está dispuesto a donar a todo aquel que se lo solicite. \
+    Serás capaz de vaciar todo el saldo de su wallet?";
+
     return (
       <div className="App" class='flex-table row' role='rowgroup'>
         <div class='flex-row-emp' role='cell'></div>
@@ -428,6 +452,19 @@ export default function Challenge({challengeNumber}) {
                             </SyntaxHighlighter>
                             ISEC ERC20:
                             <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
+                              {text3}
+                            </SyntaxHighlighter>
+                          </div>:challengeNumber==14?
+                          <div>
+                            <SyntaxHighlighter language="rust" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
+                            {text}
+                            </SyntaxHighlighter>
+                            Wallet:
+                            <SyntaxHighlighter language="rust" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
+                              {text2}
+                            </SyntaxHighlighter>
+                            Coin:
+                            <SyntaxHighlighter language="rust" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
                               {text3}
                             </SyntaxHighlighter>
                           </div>:challengeNumber>11?

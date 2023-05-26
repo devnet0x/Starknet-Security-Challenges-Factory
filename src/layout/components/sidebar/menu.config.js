@@ -5,6 +5,7 @@ import * as BsIcons from "react-icons/bs";
 import * as GiIcons from "react-icons/gi";
 import * as CiIcons from "react-icons/ci";
 import * as RiIcons from "react-icons/ri";
+import * as SiIcons from "react-icons/si";
   
   export const sideMenu = [
     {
@@ -100,6 +101,11 @@ import * as RiIcons from "react-icons/ri";
               label: 'Naught Coin(700 pts)',
               Icon: RiIcons.RiHandCoinFill,
               to: 'challenge13',
+            },
+            {
+              label: 'Good Samaritan(1000 pts)',
+              Icon: SiIcons.SiHandshake ,
+              to: 'challenge14',
             },
           ],
         },
