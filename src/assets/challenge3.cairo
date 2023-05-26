@@ -1,29 +1,34 @@
 // ######## Challenge3
 
-%lang starknet
-from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.bool import FALSE, TRUE
-from starkware.starknet.common.syscalls import get_caller_address
-from starkware.starknet.common.syscalls import get_tx_info
+use starknet::ContractAddress;
 
-@contract_interface
-namespace IMain {
-    func set_nickname(_nickname: felt) {
-    }
-
-    func get_nickname(_player: felt) -> (_nickname:felt) {
-    }
+#[abi]
+trait IMain {
+    fn get_nickname(_player: felt252) -> felt252;
+    fn set_nickname(_nickname: felt252);
+    
 }
 
-@view
-func isComplete{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (output:felt) {
-    alloc_locals;
-    let (sender) = get_caller_address();
-    let (tx_info) = get_tx_info();
-    let (nick)=IMain.get_nickname(contract_address=sender,_player=tx_info.account_contract_address);
-    if (nick==0){
-        return (FALSE,);
-    }else{
-        return (TRUE,);
+#[contract]
+mod Nickname {
+    use starknet::get_caller_address;
+    use super::IMainDispatcherTrait;
+    use super::IMainDispatcher;
+    use box::BoxTrait;
+    use starknet::contract_address::contract_address_to_felt252;
+
+
+    #[view]
+    fn isComplete() -> bool {
+        let sender = get_caller_address();
+        let tx_info = starknet::get_tx_info().unbox();
+        let nick: felt252 = IMainDispatcher { contract_address: sender }.get_nickname (contract_address_to_felt252 (tx_info.account_contract_address));
+
+        if (nick==0){
+            return (false);
+        } else {
+            return (true);
+        }   
     }
+
 }
