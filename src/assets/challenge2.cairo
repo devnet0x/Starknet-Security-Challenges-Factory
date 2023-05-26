@@ -1,23 +1,21 @@
 // ######## Challenge2
+#[contract]
+mod callme {
 
-%lang starknet
-from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.bool import FALSE, TRUE
+    struct Storage {
+        is_complete: bool, 
+    }
 
-// Define a storage variable for the owner.
-@storage_var
-func is_complete() -> (value: felt) {
-}
+    #[view]
+    fn isComplete() -> bool {
+        let output=is_complete::read();
+        return(output);
+    }
 
-@view
-func isComplete{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (output:felt) {
-    alloc_locals;
-    let (output)=is_complete.read();
-    return (output=output);
-}
+    #[external]
+    fn callme() {
+        is_complete::write(true);
+        return();
+    }
 
-@external
-func call_me{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
-    is_complete.write(TRUE);
-    return();
 }
