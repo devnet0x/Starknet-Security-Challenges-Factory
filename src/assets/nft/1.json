@@ -1,0 +1,6 @@
+{
+"name": "Deploy",
+"description": "Deploy",
+"image": "https://raw.githubusercontent.com/devnet0x/Starknet-Security-Challenges-Repo/main/src/assets/nft/01.jpeg",
+"external_link": "https://starknet-challenges.vercel.app/"
+}
