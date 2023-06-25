@@ -1,24 +1,38 @@
 #[contract]
 mod challenge10 {
+
+    use array::ArrayTrait;
+    use array::SpanTrait;
     use starknet::ContractAddress;
-    use starknet::get_caller_address;
     use starknet::get_block_info;
+    use starknet::get_caller_address;
     use starknet::syscalls;
-
-
-        // let guess = starknet::syscalls::keccak_syscall(block_number.span()).unwrap_syscall();
     use box::BoxTrait;
+
+    const HEAD: felt252 = 1;
+    const TAIL: felt252 = 0;
 
     struct Storage {
         _consecutive_wins: LegacyMap<ContractAddress, u8>,
-        _lastPlayerGuess: LegacyMap<ContractAddress, u64>,
+        _lastGuessFromPlayer: LegacyMap<ContractAddress, u64>,
     }
 
+    /// @notice Event emmited when a coin flip is won
+    /// @param wins (u8): Players consecutive win count;
+    #[event]
+    fn wins_counter(wins: felt252) {}
+
+    /// @notice gets a player consecutive win count
+    /// @param player (ContractAddress): Address of the player guessing
+    /// @return status (u8): Count of consecutive wins by player
     #[view]
     fn getConsecutiveWins(player: ContractAddress) -> u8 {
         return _consecutive_wins::read(player);
     }
 
+    /// @notice Show if the game is completed
+    /// @param player (ContractAddress): Address of the player guessing
+    /// @return status (bool): Count of consecutive wins by player
     #[view]
     fn isComplete() -> bool {
         let wins = _consecutive_wins::read(get_caller_address());
@@ -26,60 +40,52 @@ mod challenge10 {
         return true;
     }
 
+    /// @notice evaluates if the player guesses correctly
+    /// @dev function is extrenal
+    /// @param guess (felt252): numeric guess of coninflip results HEAD = 1
+    ///               TAIL == 0
+    /// @return status (bool): true if the player guessed correctly, false if it didn't
     #[external]
-    fn guess(guess: u8) -> bool {
+    fn guess(guess : felt252) -> bool {
         let player = get_caller_address();
-        let last_player_guess = _lastPlayerGuess::read(player);
+        let last_guess = _lastGuessFromPlayer::read(player);
         let block_number = starknet::get_block_info().unbox().block_number;
 
-        assert( block_number > last_player_guess, 'one guess per block' );
+        assert( block_number > last_guess, 'one guess per block' );
 
-        _lastPlayerGuess::write(player, block_number);
+        _lastGuessFromPlayer::write(player, block_number);
 
         let mut consecutive_wins = _consecutive_wins::read(player);
 
-        // let answer = starknet::syscalls::keccak_syscall(block_number.span()).unwrap_syscall();
-        // let answer = starknet::syscalls::keccak_uint256s_le(block_number);
-        // let answer = starknet::syscalls::keccak_syscall(block_number);
-        // let answer = unsafe_keccak(block_number);
+        let mut block_hash = ArrayTrait::new();
+        block_hash.append(block_number);
 
+        let mut newConsecutiveWins = 0;
 
-        // create this block answer
-        // compare if answer matches
-
-        // // if answer doesnt match
-        // _consecutive_wins::write(player, 0);
-        // return false
-
-        // _consecutive_wins::write(player, consecutive_wins + 1=);
-        // return true
-
-        return false;
-
+        let answer = compute_answer(block_number);
+        if guess == answer  {
+            newConsecutiveWins = consecutive_wins + 1;
+        } else {
+            newConsecutiveWins = 0;
+        }
+        _consecutive_wins::write(player, newConsecutiveWins);
+        return guess == answer;
     }
 
-    //     let (block_hash : felt*) = alloc();
-    //     assert block_hash[0] = block_number;
+    /// @notice computes the if the answer given is the righ answer
+    /// @dev interanl function
+    /// @param number (u64): numeric value of the answer
+    /// @return status (felt252): ( HEAD or TAIL )
+    fn compute_answer(number: u64) -> felt252 {
 
-    //     let (hashLow, hashHigh) = unsafe_keccak(block_hash,16);
+        // let mut block_hash = ArrayTrait::new();
+        // block_hash.append(number);
+        // let hash = starknet::syscalls::keccak_syscall(block_hash.span());
 
-    //     local side;
-    //     let le = is_le(hashLow, hashHigh);
-    //     if (le == TRUE){
-    //         side=HEAD;
-    //     }else{
-    //         side=TAIL;
-    //     }
-
-    //     if (side == guess) {
-    //         let (current_wins) = consecutive_wins.read();
-    //         consecutive_wins.write(current_wins+1);
-    //         wins_counter.emit(current_wins+1);
-    //         return (output = TRUE);
-    //     } else {
-    //         consecutive_wins.write(0);
-    //         wins_counter.emit(0);
-    //         return (output = FALSE);
-    //     }
+        if number % 2 == 0 {
+            return HEAD;
+        }
+        return TAIL;
+    }
 
 }
