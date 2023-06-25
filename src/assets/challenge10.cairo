@@ -1,12 +1,12 @@
 #[contract]
 mod challenge10 {
 
-    use array::ArrayTrait;
-    use array::SpanTrait;
+    use traits::Into;
+    use traits::TryInto;
     use starknet::ContractAddress;
     use starknet::get_block_info;
     use starknet::get_caller_address;
-    use starknet::syscalls;
+    use starknet::info::get_tx_info;
     use box::BoxTrait;
 
     const HEAD: felt252 = 1;
@@ -20,7 +20,7 @@ mod challenge10 {
     /// @notice Event emmited when a coin flip is won
     /// @param wins (u8): Players consecutive win count;
     #[event]
-    fn wins_counter(wins: felt252) {}
+    fn wins_counter(wins: u8) {}
 
     /// @notice gets a player consecutive win count
     /// @param player (ContractAddress): Address of the player guessing
@@ -56,10 +56,6 @@ mod challenge10 {
         _lastGuessFromPlayer::write(player, block_number);
 
         let mut consecutive_wins = _consecutive_wins::read(player);
-
-        let mut block_hash = ArrayTrait::new();
-        block_hash.append(block_number);
-
         let mut newConsecutiveWins = 0;
 
         let answer = compute_answer(block_number);
@@ -68,7 +64,11 @@ mod challenge10 {
         } else {
             newConsecutiveWins = 0;
         }
+
         _consecutive_wins::write(player, newConsecutiveWins);
+
+        wins_counter(newConsecutiveWins);
+
         return guess == answer;
     }
 
@@ -78,14 +78,15 @@ mod challenge10 {
     /// @return status (felt252): ( HEAD or TAIL )
     fn compute_answer(number: u64) -> felt252 {
 
-        // let mut block_hash = ArrayTrait::new();
-        // block_hash.append(number);
-        // let hash = starknet::syscalls::keccak_syscall(block_hash.span());
+        let txInfo = get_tx_info();
+        let entropy: u256 = txInfo.unbox().transaction_hash.into();
 
-        if number % 2 == 0 {
+        if (entropy.low % 2 == 0) {
             return HEAD;
         }
+
         return TAIL;
+
     }
 
 }
