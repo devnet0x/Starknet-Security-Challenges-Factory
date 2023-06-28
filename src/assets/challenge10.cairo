@@ -58,7 +58,7 @@ mod challenge10 {
         let mut consecutive_wins = _consecutive_wins::read(player);
         let mut newConsecutiveWins = 0;
 
-        let answer = compute_answer(block_number);
+        let answer = compute_answer();
         if guess == answer  {
             newConsecutiveWins = consecutive_wins + 1;
         } else {
@@ -74,9 +74,8 @@ mod challenge10 {
 
     /// @notice computes the if the answer given is the righ answer
     /// @dev interanl function
-    /// @param number (u64): numeric value of the answer
     /// @return status (felt252): ( HEAD or TAIL )
-    fn compute_answer(number: u64) -> felt252 {
+    fn compute_answer() -> felt252 {
 
         let txInfo = get_tx_info();
         let entropy: u256 = txInfo.unbox().transaction_hash.into();
