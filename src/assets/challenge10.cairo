@@ -13,7 +13,7 @@ mod challenge10 {
     const TAIL: felt252 = 0;
 
     struct Storage {
-        _consecutive_wins: LegacyMap<ContractAddress, u8>,
+        _consecutive_wins: u8,
         _lastGuessFromPlayer: LegacyMap<ContractAddress, u64>,
     }
 
@@ -27,7 +27,7 @@ mod challenge10 {
     /// @return status (u8): Count of consecutive wins by player
     #[view]
     fn getConsecutiveWins(player: ContractAddress) -> u8 {
-        return _consecutive_wins::read(player);
+        return _consecutive_wins::read();
     }
 
     /// @notice Show if the game is completed
@@ -35,7 +35,7 @@ mod challenge10 {
     /// @return status (bool): Count of consecutive wins by player
     #[view]
     fn isComplete() -> bool {
-        let wins = _consecutive_wins::read(get_caller_address());
+        let wins = _consecutive_wins::read();
         assert(wins >= 6, 'not enought consecutive wins');
         return true;
     }
@@ -55,7 +55,7 @@ mod challenge10 {
 
         _lastGuessFromPlayer::write(player, block_number);
 
-        let mut consecutive_wins = _consecutive_wins::read(player);
+        let mut consecutive_wins = _consecutive_wins::read();
         let mut newConsecutiveWins = 0;
 
         let answer = compute_answer();
@@ -65,7 +65,7 @@ mod challenge10 {
             newConsecutiveWins = 0;
         }
 
-        _consecutive_wins::write(player, newConsecutiveWins);
+        _consecutive_wins::write(newConsecutiveWins);
 
         wins_counter(newConsecutiveWins);
 
