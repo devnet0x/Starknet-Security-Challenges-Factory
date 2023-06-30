@@ -23,21 +23,21 @@ mod challenge10 {
     fn wins_counter(wins: u8) {}
 
     /// @notice gets a player consecutive win count
-    /// @param player (ContractAddress): Address of the player guessing
     /// @return status (u8): Count of consecutive wins by player
     #[view]
-    fn getConsecutiveWins(player: ContractAddress) -> u8 {
+    fn getConsecutiveWins() -> u8 {
         return _consecutive_wins::read();
     }
 
     /// @notice Show if the game is completed
-    /// @param player (ContractAddress): Address of the player guessing
     /// @return status (bool): Count of consecutive wins by player
     #[view]
     fn isComplete() -> bool {
         let wins = _consecutive_wins::read();
-        assert(wins >= 6, 'not enought consecutive wins');
-        return true;
+        if (wins >= 6) {
+            return true;
+        }
+        return false;
     }
 
     /// @notice evaluates if the player guesses correctly
