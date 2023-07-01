@@ -1,75 +1,91 @@
-%lang starknet
-from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.bool import FALSE, TRUE
-from starkware.starknet.common.syscalls import get_block_number
-from starkware.cairo.common.math import assert_not_equal
-from starkware.cairo.common.math_cmp import is_le
-from starkware.cairo.common.keccak import unsafe_keccak
-from starkware.cairo.common.alloc import alloc
+#[contract]
+mod challenge10 {
 
-const HEAD=0;
-const TAIL=1;
-             
-@event
-func wins_counter(wins: felt) {
-}
+    use traits::Into;
+    use traits::TryInto;
+    use starknet::ContractAddress;
+    use starknet::get_block_info;
+    use starknet::get_caller_address;
+    use starknet::info::get_tx_info;
+    use box::BoxTrait;
 
-@storage_var
-func consecutive_wins() -> (value: felt) {
-}
+    const HEAD: felt252 = 1;
+    const TAIL: felt252 = 0;
 
-@storage_var
-func last_block() -> (value: felt) {
-}
-
-func get_last_block{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> felt {
-        alloc_locals;
-        let (res)=last_block.read();
-        return res;
-}
-
-@view
-func isComplete{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (output:felt) {
-    alloc_locals;
-    let (wins)=consecutive_wins.read();
-    assert wins=6;
-    return (output=TRUE);
-}
-
-@external
-func guess{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    guess : felt) -> (output : felt) {
-    alloc_locals;
-
-    let (block_number) = get_block_number();
-    
-    with_attr error_message("New guess must be in a new block."){
-        assert_not_equal(block_number, get_last_block());
-    }
-    last_block.write(block_number);
-
-    let (block_hash : felt*) = alloc();
-    assert block_hash[0] = block_number;
-
-    let (hashLow, hashHigh) = unsafe_keccak(block_hash,16);
-
-    local side;
-    let le = is_le(hashLow, hashHigh);
-    if (le == TRUE){
-        side=HEAD;
-    }else{
-        side=TAIL;
+    struct Storage {
+        _consecutive_wins: u8,
+        _lastGuessFromPlayer: LegacyMap<ContractAddress, u64>,
     }
 
-    if (side == guess) {
-        let (current_wins) = consecutive_wins.read();
-        consecutive_wins.write(current_wins+1);
-        wins_counter.emit(current_wins+1);
-        return (output = TRUE);
-    } else {
-        consecutive_wins.write(0);
-        wins_counter.emit(0);
-        return (output = FALSE);
+    /// @notice Event emmited when a coin flip is won
+    /// @param wins (u8): Players consecutive win count;
+    #[event]
+    fn wins_counter(wins: u8) {}
+
+    /// @notice gets a player consecutive win count
+    /// @return status (u8): Count of consecutive wins by player
+    #[view]
+    fn getConsecutiveWins() -> u8 {
+        return _consecutive_wins::read();
+    }
+
+    /// @notice Show if the game is completed
+    /// @return status (bool): Count of consecutive wins by player
+    #[view]
+    fn isComplete() -> bool {
+        let wins = _consecutive_wins::read();
+        if (wins >= 6) {
+            return true;
+        }
+        return false;
+    }
+
+    /// @notice evaluates if the player guesses correctly
+    /// @dev function is extrenal
+    /// @param guess (felt252): numeric guess of coninflip results HEAD = 1
+    ///               TAIL == 0
+    /// @return status (bool): true if the player guessed correctly, false if it didn't
+    #[external]
+    fn guess(guess : felt252) -> bool {
+        let player = get_caller_address();
+        let last_guess = _lastGuessFromPlayer::read(player);
+        let block_number = starknet::get_block_info().unbox().block_number;
+
+        assert( block_number > last_guess, 'one guess per block' );
+
+        _lastGuessFromPlayer::write(player, block_number);
+
+        let mut consecutive_wins = _consecutive_wins::read();
+        let mut newConsecutiveWins = 0;
+
+        let answer = compute_answer();
+        if guess == answer  {
+            newConsecutiveWins = consecutive_wins + 1;
+        } else {
+            newConsecutiveWins = 0;
+        }
+
+        _consecutive_wins::write(newConsecutiveWins);
+
+        wins_counter(newConsecutiveWins);
+
+        return guess == answer;
+    }
+
+    /// @notice computes the if the answer given is the righ answer
+    /// @dev interanl function
+    /// @return status (felt252): ( HEAD or TAIL )
+    fn compute_answer() -> felt252 {
+
+        let txInfo = get_tx_info();
+        let entropy: u256 = txInfo.unbox().transaction_hash.into();
+
+        if (entropy.low % 2 == 0) {
+            return HEAD;
+        }
+
+        return TAIL;
+
     }
 
 }
