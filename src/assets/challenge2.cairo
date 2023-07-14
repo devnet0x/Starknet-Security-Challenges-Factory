@@ -1,21 +1,27 @@
 // ######## Challenge2
-#[contract]
-mod callme {
+#[starknet::interface]
+trait ICallmeTrait<TContractState> {
+   fn isComplete(self: @TContractState) -> bool;
+   fn call_me(ref self: TContractState);
+}
 
+#[starknet::contract]
+mod Callme {
+    #[storage]
     struct Storage {
         is_complete: bool, 
     }
 
-    #[view]
-    fn isComplete() -> bool {
-        let output=is_complete::read();
-        return(output);
-    }
+    #[external(v0)]
+    impl CallmeImpl of super::ICallmeTrait<ContractState> {
+        fn isComplete(self: @ContractState) -> bool {
+            let output = self.is_complete.read();
+            return(output);
+        }
 
-    #[external]
-    fn callme() {
-        is_complete::write(true);
-        return();
+        fn call_me(ref self: ContractState) {
+            self.is_complete.write(true);
+            return();
+        }
     }
-
 }

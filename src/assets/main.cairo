@@ -24,6 +24,9 @@ namespace ITestContract {
 namespace INFT {
     func mint(to: felt, tokenId: Uint256){
     }
+    
+    func setTokenURI(base_token_uri_len: felt, base_token_uri: felt*, token_uri_suffix: felt){
+    }
 }
 // ######## Storage variables and structs
 
@@ -76,6 +79,11 @@ func challenges(challenge_number:felt) -> (res: challenge_struct) {
 // Define a storage variable for the salt.
 @storage_var
 func salt() -> (value: felt) {
+}
+
+// Define a storage variable for the NFT Collection Address.
+@storage_var
+func nft_address() -> (value: felt) {
 }
 
 // ######## Events
@@ -236,7 +244,8 @@ func mint{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
 
     // Mint NFT
     let _tokenId : Uint256 = Uint256(_challenge_number, 0);
-    INFT.mint(contract_address=0x007d85f33b50c06d050cca1889decca8a20e5e08f3546a7f010325cb06e8963f, //NFT proxy contract address
+    let nft : felt = nft_address.read();
+    INFT.mint(contract_address=nft, //NFT proxy contract address
             to=sender,
             tokenId=_tokenId);
 
@@ -348,14 +357,6 @@ func setPlayer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
 func initializer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     proxy_admin: felt
 ) {
-    let new_challenge1 = challenge_struct(class_hash=0x629a5f4dac07abc6c613edefd07117f3a0de71299278fce0577e3c1723aba81,points=50);
-    challenges.write(1,new_challenge1);
-    let new_challenge2 = challenge_struct(class_hash=0x43bd4ae1a2c97cb70544e50ef418f1d4b9e8f92637b11dd1e61b652908b073,points=100);
-    challenges.write(2,new_challenge2);
-    let new_challenge3 = challenge_struct(class_hash=0x336cfb5d3d3eac80b29893ed839a8954813750ad5ace1fca2424e3eb6e4efa5,points=200);
-    challenges.write(3,new_challenge3);
-    let new_challenge4 = challenge_struct(class_hash=0x6d0c4f90ed77f18129d84f0ba339c5781dcee817b965779709c5e96bad2546a,points=200);
-    challenges.write(4,new_challenge4);
     Proxy.initializer(proxy_admin);
     return ();
 }
@@ -416,5 +417,13 @@ func updateChallenge{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check
     Proxy.assert_only_admin();
     let new_challenge = challenge_struct(class_hash=new_class_hash,points=new_points);
     challenges.write(challenge_id,new_challenge);
+    return ();
+}
+
+@external
+func setNFTAddress{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(new_nft_address: felt) {
+    Proxy.assert_only_admin();
+
+    nft_address.write(new_nft_address);
     return ();
 }

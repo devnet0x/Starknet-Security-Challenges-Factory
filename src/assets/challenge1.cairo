@@ -1,8 +1,18 @@
 // ######## Challenge1
-#[contract]
-mod deploy {
-    #[view]
-    fn isComplete() -> bool {
-        return (true);
-    }
+#[starknet::interface]
+trait IDeployTrait<TContractState> {
+   fn isComplete(self: @TContractState) -> bool;
+}
+
+#[starknet::contract]
+mod Deploy {
+   #[storage]
+   struct Storage {}
+   
+   #[external(v0)]
+   impl DeployImpl of super::IDeployTrait<ContractState> {    
+      fn isComplete(self: @ContractState) -> bool {
+         return (true);
+      }
+   }
 }

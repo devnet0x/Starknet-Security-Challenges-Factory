@@ -268,11 +268,13 @@ func initializer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
     ERC1155.initializer('');
     Ownable.initializer(owner);
 
-    let base_token_uri_len=3;
+    let base_token_uri_len=4;
     let (base_token_uri) = alloc();
     assert base_token_uri[0]=184555836509371486645351865271880215103735885104792769856590766422418009699; // str_to_felt("https://raw.githubusercontent.c")
     assert base_token_uri[1]=196873592232662656702780857357828712082600550956565573228678353357572222275; // str_to_felt("om/devnet0x/Starknet-Security-C")
-    assert base_token_uri[2]=595907657462138315887562308550827209532409212463; // str_to_felt("hallenges-Repo/main/")
+    assert base_token_uri[2]=184424487222284609723570330230738705782107139797158045865232337081591886693; // str_to_felt("hallenges-Factory/main/src/asse")
+    assert base_token_uri[3]=32777744851301423;                                                           // str_to_felt("ts/nft/")  
+    
     let token_uri_suffix=199354445678;// str_to_felt(".json")
     ERC721_Metadata_initializer();
     ERC721_Metadata_setBaseTokenURI(base_token_uri_len, base_token_uri, token_uri_suffix);

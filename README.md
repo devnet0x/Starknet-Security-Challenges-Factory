@@ -1,203 +1,190 @@
-# TO INSTALL
+![](./src/assets/logo.png)
+# INTRODUCTION
+Starknet Security Challenges Factory is an open source platform where you can build Starknet CTFs, earn points, keep records on a leaderboard and mint nfts (worth nothing, just for fun) to challenge resolutors. You can see a live version [here.](#https://starknet-challenges.vercel.app/) 
+
+Here you will find:
+
+* [Requirements to install as a local CTF.](#requirements)
+
+* [How to install in local devnet.](#how-to-install)
+
+* [How to add challenges and contribute.](#how-to-add-a-challenge)
+
+* [How it works in background.](#how-it-works)
+
+# REQUIREMENTS
+- python3.9
+
+- rust 
+```
+sudo curl --proto '=https' -tslv1.2 -sSf https://sh.rustup.rs | sh
+```
+- cairo v2.0.0
+```
+git clone https://github.com/starkware-libs/cairo/
+cd cairo
+git checkout tags/v2.0.0
+cargo build --all --release
+```
+- cairo_lang v0.12
+```
+pip3 install cairo-lang
+```
+- starknet-devnet 0.5.5+
+```
+sudo apt install -y libgmp3-dev
+pip install starknet-devnet
+```
+- starknet-py 0.170a0+
+```
+pip install starknet-py==0.17.0a0
+```
+- node v16.16.0
+```
+sudo apt-get update
+curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+sudo apt-get install -y nodejs
+```
+
+# HOW TO INSTALL
+1) Start a local devnet with seed 0
+```
+starknet-devnet --seed 0 
+```
+2) Clone repository
 ```
 git clone https://github.com/devnet0x/Starknet-Security-Challenges-Factory
+```
+3) Deploy contracts to local devnet
+```
+cd Starknet-Security-Challenges-Factory
+python setup.py
+```
+4) Install and start web3 platform
+```
 npm install
 npm start run
 ```
-# FIRST INSTALL
+5) Connect your Argentx or Braavos wallet to devnet and play at:
+```
+http://localhost:3000
+```
+![](./src/assets/screenshot.png)
 
-/***************************************
-1) Setup private key
-***************************************/
-```
-export PROTOSTAR_ACCOUNT_PRIVATE_KEY=<PRIVATE_KEY>
-```
-/************************************** 
-2) NFT First with proxy
- ***************************************/
-```
-protostar build
-protostar declare ./build/nft.json --network testnet --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --max-fee auto
-./proto_build.sh testnet acct2.key ./build/proxy.json <NFT_CLASS_HASH> <initializer_selector> 2 <proxy_admin=test_account=0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0> <owner=proxy_main_address=0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd>
-./proto_build.sh testnet acct2.key ./build/proxy.json 2254791114012895120747420017667068924321658826850474488071434973560037090838 1295919550572838631247819983596733806859788957403169325509326258146877103642 2 1720505794444067493684054237668661975668255683573946537258759551417823511264 2897104344186633863759899964899743803992660811742247445988604629585515894237
-```
+# HOW TO ADD A CHALLENGE
+1) Compile your Cairo2 challenge with a isComplete function returning true when challenge is completed.
 
-/************************************** 
-3) Main with proxy
- ***************************************/
+2) Edit $HOME/.starknet_accounts/starknet_open_zeppelin_accounts.json and add devnet account to "alpha-goerli" structure:
 ```
-protostar build
-protostar declare ./build/main.json --network testnet --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --max-fee auto
+    "admin": {
+        "private_key": "0xe3e70682c2094cac629f6fbed82c07cd",
+        "public_key": "0x7e52885445756b313ea16849145363ccb73fb4ab0440dbac333cf9d13de82b9",
+        "salt": "0x0",
+        "address": "0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a",
+        "deployed": true
+    }
+```
+3) Declare your Cairo2 challenge in devnet.
+```
+export STARKNET_NETWORK=alpha-goerli
+export STARKNET_WALLET=starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount
 
-./proto_build.sh testnet acct2.key ./build/proxy.json <MAIN_CLASS_HASH> 1295919550572838631247819983596733806859788957403169325509326258146877103642 1 1720505794444067493684054237668661975668255683573946537258759551417823511264
+starknet --gateway_url http://127.0.0.1:5050 --feeder_gateway_url http://127.0.0.1:5050 --account admin declare --contract <challenge_sierra_file>
+```
+4) Add your challenge to main contract.
+```
+starknet --gateway_url http://127.0.0.1:5050 --feeder_gateway_url http://127.0.0.1:5050 --account admin invoke --max_fee 1000000000000000 --address <devnet_proxy_main_address> --function updateChallenge --inputs <challenge_number> <challenge_class_hash> <challenge_points>
 
-TESTNET account
-0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0
-1720505794444067493684054237668661975668255683573946537258759551417823511264
 
-DEVNET account
-0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a
-3562055384976875123115280411327378123839557441680670463096306030682092229914
+For example:
+export STARKNET_NETWORK=alpha-goerli
+export STARKNET_WALLET=starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount
+starknet --gateway_url http://127.0.0.1:5050 --feeder_gateway_url http://127.0.0.1:5050 --account admin invoke --max_fee 1000000000000000 --address 0x34c07e42599cd772efa07a7ffb8ea98bce9497cd01a0fa48c601f0000422e10 --function updateChallenge --inputs 21 0x1c0aaac8308084dc8fbeaea90c0c3e69d18d63f1f51062d2b8782ba10423e7d 200
 ```
+5) Check with:
+```
+starknet --gateway_url http://127.0.0.1:5050 --feeder_gateway_url http://127.0.0.1:5050 tx_status --hash <your_previous_tx_hash>
 
-/***************************************
-4) Challenges
-***************************************/
+{
+    "block_hash": "0x1ac55d27761ec8f377b216cedbac57409e82efc631112aaad2e9bc722b182af",
+    "tx_status": "ACCEPTED_ON_L2"
+}
 ```
-protostar declare ./build/challenge1.json --network testnet --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --max-fee auto
-protostar declare ./build/challenge2.json --network testnet --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --max-fee auto
-protostar declare ./build/challenge3.json --network testnet --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --max-fee auto
-protostar declare ./build/challenge4.json --network testnet --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --max-fee auto
-protostar declare ./build/challenge5.json --network testnet --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --max-fee auto
-protostar declare ./build/challenge6.json --network testnet --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --max-fee auto
-protostar declare ./build/challenge7.json --network testnet --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --max-fee auto
-protostar declare ./build/challenge8.json --network testnet --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --max-fee auto
-protostar declare ./build/challenge9.json --network testnet --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --max-fee auto
-protostar declare ./build/challenge10.json --network testnet --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --max-fee auto
-protostar declare ./build/challenge11.json --network testnet --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --max-fee auto
-
-protostar invoke --contract-address 0x0669509353516162399fa39c771e578ace956fb7f2f262d3d717e0e83aed759a --function "updateChallenge" --network testnet --max-fee auto --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --inputs 5 1608260295188695349903848762173716114981113955591920494022193585462776448318 300
-protostar invoke --contract-address 0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd --function "updateChallenge" --network testnet --max-fee auto --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --inputs 6 509460881826382358753513407542140252246689935694638291974509725008424896605 300
-protostar invoke --contract-address 0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd --function "updateChallenge" --network testnet --max-fee auto --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --inputs 7 1529006953307469816424184439819570255482354784921751969205932052064166548773 500
-protostar invoke --contract-address 0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd --function "updateChallenge" --network testnet --max-fee auto --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --inputs 8 2541513634400202439989150743186800759218763417772159699724177676341034823375 1500
-protostar invoke --contract-address 0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd --function "updateChallenge" --network testnet --max-fee auto --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --inputs 9 1006496034686303693987544354654581672233653511491418035607541540218434476386 500
-protostar invoke --contract-address 0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd --function "updateChallenge" --network testnet --max-fee auto --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --inputs 10 2015742561013441554959996173910038832233769986596628897062082283922915148398 700
-protostar invoke --contract-address 0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd --function "updateChallenge" --network testnet --max-fee auto --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --inputs 11 1776020012526830053623742027519185568683529369535560571723486745965324138888 300
-protostar invoke --contract-address 0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd --function "updateChallenge" --network testnet --max-fee auto --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --inputs 12 2073266125953766656779488262002327289955153953103206465240368690760885020661 700
-protostar invoke --contract-address 0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd --function "updateChallenge" --network testnet --max-fee auto --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --inputs 13 1094699651397034987847783403574045429885774553150191428473637146274274454845 700
-protostar invoke --contract-address 0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd --function "updateChallenge" --network testnet --max-fee auto --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --inputs 14 1729549181004209424779159142871905774093657648840100308138309350982713768344 1000
-
-```
-
-# MAIN UPGRADE
-
-/***************************************
-1) Declare main
-***************************************/
-```
-./proto_build.sh testnet acct2.key ./build/main.json 
-```
-/***************************************
-2) Setup private key
-***************************************/
-```
-export PROTOSTAR_ACCOUNT_PRIVATE_KEY=<PRIVATE_KEY>
-```
-/***************************************
-3) Upgrade main
-***************************************/
-```
-protostar invoke --contract-address 0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd --function "upgrade" --network testnet --max-fee auto --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --inputs <new_main_class_hash_SINO EXISTE CLASS_HASH_SE PIERDE EL PROXY Y LOS DATOS>
-```
-/***************************************
-4) Copy main to assets
-***************************************/
-```
-cp main.cairo ../cairo/Starknet-Security-Challenges-Factory/src/assets/
-```
-/***************************************
-5) Upload web3 to test
-***************************************/
-```
-vercel
-```
-/***************************************
-6) Test interface
-***************************************/
-
-/***************************************
-7) Upload web3 to prod
-***************************************/
-```
-vercel --prod
-```
-/***************************************
-8) Upload web3 to github factory
-***************************************/
-```
-git status
-git add -A
-git commit -m "Add new challenge"
-git push
-```
-
-# ADD CHALLENGE
-
-/************************************** 1) Declare new_challenge ***************************************/
-```
-./proto_build.sh testnet acct2.key ./build/challenge<>.json 
-```
-/***************************************
-2) Setup private key
-***************************************/
-```
-export PROTOSTAR_ACCOUNT_PRIVATE_KEY=<PRIVATE_KEY>
-```
-/***************************************
-5) Add new challenge to main
-***************************************/
-```
-protostar invoke --contract-address 0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd --function "updateChallenge" --network testnet --max-fee auto --account-address 0x03cDc592C01DaD4d9fc903e02C8610b043eED0692a54BDA704D88DbB2a6Bc2E0 --inputs <new_id> <new_challenge_class_hash> <challenge_points>
-```
-/***************************************
-6) Copy challenge to react assets
-***************************************/
-```
-cp <new_challenge>.cairo $HOME/cairo/Starknet-Security-Challenges-Factory/src/assets/
-```
-/***************************************
-7) Restore tesnet proxy en global.jsx
-***************************************/
+6) Add your .cairo file to src/assets
+7) Add your nft image file to src/assets/nft
+8) Add your nft json file to src/assets/nft
+9) Edit src/components/Challenge.jsx and add your challenge and descriptions.
+10) Edit src/layout/components/menu_config.js and add your challenge to the menu.
+11) Edit src/App.js and add challenge to page route.
+12) Edit config.py and add your challenge in CHALLENGE_CONTRACTS.
+13) Test your challenge in http://localhost:3000
+14) Edit global.jsx and restore testnet main proxy to:
 ```
 global.MAIN_CONTRACT_ADDRESS='0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd';
+```
+14) Send your PR to github.
 
-Comment devnet address
-```
-/***************************************
-8) Upload web3 to test
-***************************************/
-```
-cd $HOME/cairo/Starknet-Security-Challenges-Factory/
+# HOW IT WORKS
+![](./src/assets/design.png)
 
-vercel
+1) User press deploy button in web interface.
+2) Starknet-react library calls deploy function on main contract.
+3) Main contract deploys a challenge instance to user.
+4) User exploit and solve challenge.
+5) User press check button in web interface.
+6) Starknet-react library calls check function on main contract.
+7) Main contract calls isComplete funcion in challenge instance.
+8) If isComplete returns true then:
+* Main contracts add points to user record (displayed in leaderboard).
+* Mint button appears in web interface.
+9) User press mint button
+10) Starknet-react library calls mint function on main contract.
+11) Main contract calls mint funcion in nft smart contract.
+12) User can press link in web interface to watch his nft.
+
+# HOW TO DEPLOY WEB3 PLATFORM IN PRODUCTION (ONLY PRODUCTION ADMINS).
+1) Commit PR
+2) Clone Repository
 ```
-/***************************************
-9) Test interface
-***************************************/
+git clone https://github.com/devnet0x/Starknet-Security-Challenges-Factory
 ```
-https://starknet-challenges-devnet0x-gmailcom.vercel.app/
+3) Compile challenge.
 ```
-/***************************************
-10) Upload web3 to prod
-***************************************/
+cd cairo
+cargo run --bin starknet-compile ./src/assets/challenge.cairo challenge.sierra
+```
+4) Declare challenge.
+```
+export STARKNET_NETWORK=alpha-goerli
+export STARKNET_WALLET=starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount //utiliza el DEFAULT
+starknet --account __default__ declare --contract challenge.sierra
+```
+5) On starkscan/voyager invoke updateChallenge function to add challenge.
+```
+proxy_main:0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd
+```
+6) Upload to test environment.
+```
+vercel login
+vercel link (to: starknet-challenges)
+vercel (if error then check node version in vercel.com project settings)
+```
+7) Test interface.
+
+8) Upload to production environment.
 ```
 vercel --prod
 ```
-/***************************************
-11) Upload web3 to github factory
-***************************************/
-```
-git status
-git add -A
-git commit -m "Add new challenge"
-git push
-```
-/***************************************
-12) Upload challenge to github repo
-***************************************/
-```
-cd $HOME/cairo/Starknet-Security-Challenges-Repo
 
-cp $HOME/cte_cairo/challenge<n>.cairo .
-git add -A
-git commit -m "Add new challenge"
-git push
+# HOW TO UPGRADE CORE CONTRACTS (ONLY PRODUCTION ADMINS)
+
+1) Declare new main.cairo or nft.cairo smart contract.
+2) On starkscan/voyager read getImplementationHash in case of rollback.
 ```
-# ADD NEW CHALLENGE TO REACT
+proxy_main:0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd
+proxy_nft :0x007d85f33b50c06d050cca1889decca8a20e5e08f3546a7f010325cb06e8963f
 ```
-Add to src/components/Challenge.jsx
-Add option to src/layout/components/menu_config.js
-Add page route to src/App.js
-Add in readme.md initial setup
-Check testnet proxy address in src/global.jsx
+3) On starkscan/voyager invoke upgrade function with new core implementation hash.
+```
+WARNING!!! IF CLASS_HASH DOESN'T EXIST WE WILL LOST DATA AND PROXY FUNCTIONS.
 ```
