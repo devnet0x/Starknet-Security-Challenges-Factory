@@ -58,6 +58,7 @@ git clone https://github.com/devnet0x/Starknet-Security-Challenges-Factory
 3) Deploy contracts to local devnet
 ```
 cd Starknet-Security-Challenges-Factory
+Edit config.py and set CAIRO_MANIFEST_PATH with your cairo 2 toml path
 python setup.py
 ```
 4) Install and start web3 platform
