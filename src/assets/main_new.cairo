@@ -24,8 +24,8 @@ mod SecurityChallenge {
     use starknet::class_hash::Felt252TryIntoClassHash;
     use traits::TryInto;
     use core::traits::Into;
-
     use option::OptionTrait;
+    use super::{ITestContractDispatcher, ITestContractDispatcherTrait};
 
 
     // Struct to storage players challenge status.
@@ -125,6 +125,24 @@ mod SecurityChallenge {
                 self.player_challenges.write((sender.into(),_challenge_number),new_challenge);
 
                 new_contract_address.into()
+        }
+
+        // Function to test if challenge was completed by player
+        fn test_challenge(ref self: ContractState, _challenge_number: felt252) -> felt252 {
+            let sender = get_caller_address();
+            let current_player_challenge = self.player_challenges.read((sender.into(),_challenge_number));
+            
+            //Check if is already resolved
+            assert(current_player_challenge.resolved == false.into(), "Challenge already resolved");
+
+            //Check if resolved
+            let challenge_contract = current_player_challenge.address;
+            let _result: bool = ITestContractDispatcher { contract_address: challenge_contract.try_into().unwrap() }.isComplete();
+            assert(_result == true, "Challenge not resolved");
+            
+            //At this point we know challenge was completed sucessfully
+
+            //Update player resolved challenges
         }
     }
 }
