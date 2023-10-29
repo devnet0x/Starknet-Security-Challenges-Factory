@@ -26,6 +26,7 @@ mod SecurityChallenge {
     use core::traits::Into;
     use option::OptionTrait;
     use super::{ITestContractDispatcher, ITestContractDispatcherTrait};
+    use super::{INFTDispatcher, INFTDispatcherTrait};
 
 
     // Struct to storage players challenge status.
@@ -54,7 +55,6 @@ mod SecurityChallenge {
 
     #[storage]
     struct Storage {
-        xpos: LegacyMap::<u256, u8>,
         player_challenges: LegacyMap::<(felt252, felt252), player_challenges_struct>,
         player: LegacyMap::<felt252, player_struct>,
         registered_players: LegacyMap::<felt252, player_struct>,
@@ -122,7 +122,7 @@ mod SecurityChallenge {
 
                 //Assign challenge to player
                 let new_challenge = player_challenges_struct{address:new_contract_address.into(),resolved:false.into(),minted:false.into()};
-                self.player_challenges.write((sender.into(),_challenge_number),new_challenge);
+                self.player_challenges.write((sender.into(),_challenge_number), new_challenge);
 
                 new_contract_address.into()
         }
@@ -143,7 +143,133 @@ mod SecurityChallenge {
             //At this point we know challenge was completed sucessfully
 
             //Update player resolved challenges
+            let new_challenge = player_challenges_struct {address: current_player_challenge.address, resolved: true.into(), minted: false.into()};
+            self.player_challenges.write((sender.into(),_challenge_number),new_challenge);
+
+            //Get player info
+            let current_player = self.player.read(sender.into());
+            let current_challenge = self.challenges.read(_challenge_number);
+            let mut player_id: felt252 = current_player.id;
+
+            // First time, get a new player id to add player to ranking
+            if current_player.points == 0 {
+                player_id = self.player_count.read();
+                self.player_count.write(self.player_count.read() + 1);
+            }
+
+            // update player points
+            let player_points = current_player.points + current_challenge.points;
+            let player_info = player_struct {id: player_id, nickname: current_player.nickname, points: player_points, address: sender.into()};
+            self.player.write( sender.into(), player_info);
+
+            //Add to ranking (sort in frontend)
+            let player_info = player_struct {id: player_id, nickname: current_player.nickname, points: player_points, address: sender.into()};
+            self.registered_players.write( player_id, player_info);
+
+            _result.into()
         }
+
+        // Function to mint an NFT after resolve a challenge
+        fn mint(ref self: ContractState, _challenge_number: felt252) {
+            let sender = get_caller_address();
+            let current_player_challenge = self.player_challenges.read((sender.into(),_challenge_number));
+
+            //Check if is already resolved
+            assert(current_player_challenge.resolved == true.into(), "Challenge not resolved yet");
+
+            //Check if is already minted
+            assert(current_player_challenge.minted == false.into(), "Challenge already minted");
+
+            // Mint NFT
+            // warn: libfunc `bytes31_const` is not allowed in the libfuncs list `Default libfunc list`
+            let _tokenId : u256 = u256 { low: _challenge_number.try_into().unwrap(), high: 0_u128 };
+            let nft : felt252 = self.nft_address.read();
+            INFTDispatcher { contract_address: nft.try_into().unwrap() }.mint(sender.into(), _tokenId);
+
+            //Update player minted challenges
+            let new_challenge = player_challenges_struct {address: current_player_challenge.address, resolved: true.into(), minted: true.into()};
+            self.player_challenges.write((sender.into(),_challenge_number),new_challenge);
+        }
+
+        // Get player total points
+        fn get_player_points(self: @ContractState, _player: felt252) -> felt252 {
+            let current_player = self.player.read(_player.into());
+            current_player.points.into()
+        }
+        
+        // Get if challenge is already completed by player
+        fn get_challenge_status(self: @ContractState, _player: felt252, _challenge_number: felt252) -> felt252 {
+            let current_challenge = self.player_challenges.read((_player.into(),_challenge_number));
+            current_challenge.resolved.into()
+        }
+
+        // Get if challenge is already completed by player
+        fn get_mint_status(self: @ContractState, _player: felt252, _challenge_number: felt252) -> felt252 {
+            let current_challenge = self.player_challenges.read((_player.into(),_challenge_number));
+            current_challenge.minted.into()
+        }
+
+        // Get player nickname
+        fn get_nickname(self: @ContractState, _player: felt252) -> felt252 {
+            let current_player = self.player.read(_player.into());
+            current_player.nickname.into()
+        }
+        
+        //Set player nickname
+        fn set_nickname(ref self: ContractState, _nickname: felt252) {
+            let sender = get_caller_address();
+            let current_player = self.player.read(sender.into());
+            let player_points = current_player.points;
+            //Check if already resolved
+            assert(player_points != 0, "You must finish a challenge before set nickname.");
+
+            let player_info = player_struct {id: current_player.id, nickname: _nickname, points: player_points, address: sender.into()};
+            self.player.write( sender.into(), player_info);
+            let player_info = player_struct {id: current_player.id, nickname: _nickname, points: player_points, address: sender.into()};
+            self.registered_players.write( current_player.id, player_info);
+        }
+
+        // Set ranking array (recursive)
+        fn setPlayer(ref self: ContractState, _player_array: Array<player_struct>, _total: felt252) {
+
+        }
+            
+        // Get players ranking (not ordered)
+        fn get_ranking(self: @ContractState) -> Array<player_struct> {
+            let total = self.player_count.read();
+            let mut player_array: Array<player_struct> = ArrayTrait::new();
+            let mut i = 0;
+            loop {
+                if i == total {
+                    break;
+                }
+                let current_player = self.registered_players.read(i);
+                player_array.append(current_player);
+                i = i + 1;
+            };
+            
+            player_array
+        }
+
+        // Todo Proxy functions
+
+        //
+        // Getters
+        //
+
+        fn getPlayerCount(self: @ContractState) -> felt252 {
+            self.player_count.read()
+        }
+        
+        fn updateChallenge(ref self: ContractState, challenge_id: felt252, new_class_hash :felt252, new_points:felt252) {
+            let new_challenge = challenge_struct{ class_hash: new_class_hash, points: new_points};
+            self.challenges.write( challenge_id, new_challenge);
+        }
+        
+        fn setNFTAddress(ref self: ContractState, new_nft_address: felt252) {
+            self.nft_address.write(new_nft_address);
+        }
+        
     }
 }
 
