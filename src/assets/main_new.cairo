@@ -1,5 +1,3 @@
-use core::option::OptionTrait;
-use core::traits::TryInto;
 // ######## Main
 // When change this contract interface remember update ABI file at react project.
 
@@ -17,6 +15,7 @@ trait INFT<TContractState> {
 #[starknet::contract]
 mod SecurityChallenge {
     use starknet::syscalls::deploy_syscall;
+    use core::result::ResultTrait;
     use starknet::{
         ContractAddress, get_contract_address, get_caller_address
     };
@@ -27,6 +26,8 @@ mod SecurityChallenge {
     use option::OptionTrait;
     use super::{ITestContractDispatcher, ITestContractDispatcherTrait};
     use super::{INFTDispatcher, INFTDispatcherTrait};
+    use starknet::syscalls::replace_class_syscall;
+    use starknet::contract_address_try_from_felt252;
 
 
     // Struct to storage players challenge status.
@@ -55,6 +56,7 @@ mod SecurityChallenge {
 
     #[storage]
     struct Storage {
+        Proxy_admin: felt252,
         player_challenges: LegacyMap::<(felt252, felt252), player_challenges_struct>,
         player: LegacyMap::<felt252, player_struct>,
         registered_players: LegacyMap::<felt252, player_struct>,
@@ -133,12 +135,12 @@ mod SecurityChallenge {
             let current_player_challenge = self.player_challenges.read((sender.into(),_challenge_number));
             
             //Check if is already resolved
-            assert(current_player_challenge.resolved == false.into(), "Challenge already resolved");
+            assert(current_player_challenge.resolved == false.into(), 'Challenge already resolved');
 
             //Check if resolved
             let challenge_contract = current_player_challenge.address;
             let _result: bool = ITestContractDispatcher { contract_address: challenge_contract.try_into().unwrap() }.isComplete();
-            assert(_result == true, "Challenge not resolved");
+            assert(_result == true, 'Challenge not resolved');
             
             //At this point we know challenge was completed sucessfully
 
@@ -175,10 +177,10 @@ mod SecurityChallenge {
             let current_player_challenge = self.player_challenges.read((sender.into(),_challenge_number));
 
             //Check if is already resolved
-            assert(current_player_challenge.resolved == true.into(), "Challenge not resolved yet");
+            assert(current_player_challenge.resolved == true.into(), 'Challenge not resolved yet');
 
             //Check if is already minted
-            assert(current_player_challenge.minted == false.into(), "Challenge already minted");
+            assert(current_player_challenge.minted == false.into(), 'Challenge already minted');
 
             // Mint NFT
             // warn: libfunc `bytes31_const` is not allowed in the libfuncs list `Default libfunc list`
@@ -221,17 +223,12 @@ mod SecurityChallenge {
             let current_player = self.player.read(sender.into());
             let player_points = current_player.points;
             //Check if already resolved
-            assert(player_points != 0, "You must finish a challenge before set nickname.");
+            assert(player_points != 0, 'End a challenge before nickname');
 
             let player_info = player_struct {id: current_player.id, nickname: _nickname, points: player_points, address: sender.into()};
             self.player.write( sender.into(), player_info);
             let player_info = player_struct {id: current_player.id, nickname: _nickname, points: player_points, address: sender.into()};
             self.registered_players.write( current_player.id, player_info);
-        }
-
-        // Set ranking array (recursive)
-        fn setPlayer(ref self: ContractState, _player_array: Array<player_struct>, _total: felt252) {
-
         }
             
         // Get players ranking (not ordered)
@@ -251,7 +248,17 @@ mod SecurityChallenge {
             player_array
         }
 
-        // Todo Proxy functions
+        // Proxy function
+        fn upgrade(ref self: ContractState, new_class_hash: core::starknet::class_hash::ClassHash) ->felt252 {
+            //Only owner can access this function
+            assert(
+                contract_address_try_from_felt252(self.Proxy_admin.read()).unwrap() == get_caller_address(),
+                'Only owner can access function.'
+            );
+
+            replace_class_syscall(new_class_hash);
+            1
+        }
 
         //
         // Getters
@@ -262,11 +269,23 @@ mod SecurityChallenge {
         }
         
         fn updateChallenge(ref self: ContractState, challenge_id: felt252, new_class_hash :felt252, new_points:felt252) {
+            //Only owner can access this function
+            assert(
+                contract_address_try_from_felt252(self.Proxy_admin.read()).unwrap() == get_caller_address(),
+                'Only owner can access function.'
+            );
+
             let new_challenge = challenge_struct{ class_hash: new_class_hash, points: new_points};
             self.challenges.write( challenge_id, new_challenge);
         }
         
         fn setNFTAddress(ref self: ContractState, new_nft_address: felt252) {
+            //Only owner can access this function
+            assert(
+                contract_address_try_from_felt252(self.Proxy_admin.read()).unwrap() == get_caller_address(),
+                'Only owner can access function'
+            );
+
             self.nft_address.write(new_nft_address);
         }
         

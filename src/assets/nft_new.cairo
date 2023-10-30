@@ -14,6 +14,7 @@ mod StarknetChallengeNft {
         ContractAddress, get_contract_address, get_caller_address, contract_address_const,
         contract_address_to_felt252, contract_address_try_from_felt252
     };
+    use starknet::syscalls::replace_class_syscall;
     
     use zeroable::Zeroable;
     use traits::TryInto;
@@ -23,6 +24,7 @@ mod StarknetChallengeNft {
 
     #[storage]
     struct Storage {
+        Proxy_admin: felt252,
         token_uri_1: felt252,
         token_uri_2: felt252,
         token_uri_3: felt252,
@@ -75,12 +77,10 @@ mod StarknetChallengeNft {
 
     #[constructor]
     fn constructor(ref self: ContractState,) {
-        let name = 'Starknet Security Challenges';
-        let symbol = 'SSC';
-        self.token_uri_1.write(184555836509371486645351865271880215103735885104792769856590766422418009699); // str_to_felt("https://raw.githubusercontent.c")
-        self.token_uri_2.write(196873592232662656702780857357828712082600550956565573228678353357572222275); // str_to_felt("om/devnet0x/Starknet-Security-C")
-        self.token_uri_3.write(184424487222284609723570330230738705782107139797158045865232337081591886693); // str_to_felt("hallenges-Factory/main/src/asse")
-        self.token_uri_4.write(32777744851301423); // str_to_felt("ts/nft/");
+        self.token_uri_1.write(184555836509371486645351865271880215103735885104792769856590766422418009699); // str_to_felt('https://raw.githubusercontent.c')
+        self.token_uri_2.write(196873592232662656702780857357828712082600550956565573228678353357572222275); // str_to_felt('om/devnet0x/Starknet-Security-C')
+        self.token_uri_3.write(184424487222284609723570330230738705782107139797158045865232337081591886693); // str_to_felt('hallenges-Factory/main/src/asse')
+        self.token_uri_4.write(32777744851301423); // str_to_felt('ts/nft/ ');
     }
 
     #[external(v0)]
@@ -118,25 +118,25 @@ mod StarknetChallengeNft {
             token_uri.append(self.token_uri_3.read());
             token_uri.append(self.token_uri_4.read());
             token_uri.append(48+token_id.try_into().unwrap());
-            token_uri.append(199354445678); // str_to_felt(".json")
+            token_uri.append(199354445678); // str_to_felt('.json')
             token_uri
         }
 
         fn balanceOf(self: @ContractState, account: ContractAddress) -> u256 {
             // Do nothing
-            assert(0==1,"Function not implemented for this contract.");
+            assert(0==1,'Function not implemented.');
             0_u8.into()
         }
 
         fn ownerOf(self: @ContractState, token_id: u256) -> ContractAddress {
             // Do nothing
-            assert(0==1,"Function not implemented for this contract.");
+            assert(0==1,'Function not implemented.');
             Zeroable::zero()
         }
 
         fn getApproved(self: @ContractState, token_id: u256) -> ContractAddress {
             // Do nothing
-            assert(0==1,"Function not implemented for this contract.");
+            assert(0==1,'Function not implemented.');
             Zeroable::zero()
         }
 
@@ -144,25 +144,25 @@ mod StarknetChallengeNft {
             self: @ContractState, owner: ContractAddress, operator: ContractAddress
         ) -> bool {
             // Do nothing
-            assert(0==1,"Function not implemented for this contract.");
+            assert(0==1,'Function not implemented.');
             false
         }
 
         fn approve(ref self: ContractState, to: ContractAddress, token_id: u256) {
             // Do nothing
-            assert(0==1,"Function not implemented for this contract.");
+            assert(0==1,'Function not implemented.');
         }
 
         fn setApprovalForAll(ref self: ContractState, operator: ContractAddress, approved: bool) {
             // Do nothing
-            assert(0==1,"Function not implemented for this contract.");
+            assert(0==1,'Function not implemented.');
         }
 
         fn transferFrom(
             ref self: ContractState, from: ContractAddress, to: ContractAddress, token_id: u256
         ) {
             // Do nothing
-            assert(0==1,"Function not implemented for this contract.");
+            assert(0==1,'Function not implemented.');
         }
 
         fn safeTransferFrom(
@@ -173,7 +173,7 @@ mod StarknetChallengeNft {
             data: Span<felt252>
         ) {
             // Do nothing
-            assert(0==1,"Function not implemented for this contract.");
+            assert(0==1,'Function not implemented.');
         }
 
         fn mint(
@@ -184,12 +184,24 @@ mod StarknetChallengeNft {
             //Only owner (main contract) can mint
             assert(
                 self.owner.read() == get_caller_address(),
-                'This account cannot update uri.'
+                'This account cannot update uri'
             );
 
             self.ERC1155_balances.write((tokenId, to), 1.into());
 
             self.emit(Transfer { from: Zeroable::zero(), to: contract_address_try_from_felt252(to).unwrap(), token_id: tokenId });
+        }
+
+        // Proxy function
+        fn upgrade(ref self: ContractState, new_class_hash: core::starknet::class_hash::ClassHash) ->felt252 {
+            //Only owner can access this function
+            assert(
+                contract_address_try_from_felt252(self.Proxy_admin.read()).unwrap() == get_caller_address(),
+                'Only owner can access function.'
+            );
+
+            replace_class_syscall(new_class_hash);
+            1
         }
     }
 }
