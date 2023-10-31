@@ -1,4 +1,4 @@
-CAIRO_MANIFEST_PATH = "/home/kali/cairo/cairo/Cargo.toml"
+CAIRO_MANIFEST_PATH = "/home/kali/Downloads/cairo-2.0.0/Cargo.toml"
 
 CORE_CONTRACTS = [
     {"contract_name": "main", "cairo_version": 0},

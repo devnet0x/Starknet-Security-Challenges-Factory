@@ -24,3 +24,5 @@ yarn-error.log*
 *.log
 .vercel
 /__pycache__
+src/global.jsx
+config.py

@@ -33,7 +33,7 @@ async def setup():
 
     #ACCOUNT
     key_pair = KeyPair.from_private_key(int("0xe3e70682c2094cac629f6fbed82c07cd", 16))
-    local_network_client = GatewayClient("http://localhost:5050")
+    local_network_client = GatewayClient("http://localhost:5050") # GOERLI: https://alpha4.starknet.io
     account = Account(
         address=0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a,
         client=local_network_client,
@@ -51,7 +51,7 @@ async def setup():
     declare_result = await Contract.declare(
         account=account, compiled_contract=compiled_contract, max_fee=int(1e16)
     )
-    await declare_result.wait_for_acceptance()
+    await declare_result.wait_for_acceptance(wait_for_accept = True)
     main_class_hash = declare_result.class_hash
     print("main_class_hash=",hex(main_class_hash))
 
@@ -60,7 +60,7 @@ async def setup():
     declare_result = await Contract.declare(
         account=account, compiled_contract=compiled_contract, max_fee=int(1e16)
     )
-    await declare_result.wait_for_acceptance()
+    await declare_result.wait_for_acceptance(wait_for_accept = True)
     nft_class_hash = declare_result.class_hash
     print("nft_class_hash=",hex(nft_class_hash))
 
@@ -69,14 +69,14 @@ async def setup():
     declare_result = await Contract.declare(
         account=account, compiled_contract=compiled_contract, max_fee=int(1e16)
     )
-    await declare_result.wait_for_acceptance()
+    await declare_result.wait_for_acceptance(wait_for_accept = True)
     print("proxy_class_hash=",hex(declare_result.class_hash))
 
     #DEPLOY PROXY MAIN
     print("Deploying core contracts.")
     constructor_args = {"implementation_hash": main_class_hash, "selector": 0x02dd76e7ad84dbed81c314ffe5e7a7cacfb8f4836f01af4e913f275f89a3de1a, "calldata":{account.address}}
     deploy_result = await declare_result.deploy(constructor_args=constructor_args,max_fee=int(1e16))
-    await deploy_result.wait_for_acceptance()
+    await deploy_result.wait_for_acceptance(wait_for_accept = True)
     main = deploy_result.deployed_contract
     print("proxy_main_address=",hex(main.address))
 
@@ -89,7 +89,7 @@ async def setup():
     #DEPLOY PROXY NFT
     constructor_args = {"implementation_hash": nft_class_hash, "selector": 0x02dd76e7ad84dbed81c314ffe5e7a7cacfb8f4836f01af4e913f275f89a3de1a, "calldata":{account.address, main.address}}
     deploy_result = await declare_result.deploy(constructor_args=constructor_args,max_fee=int(1e16))
-    await deploy_result.wait_for_acceptance()
+    await deploy_result.wait_for_acceptance(wait_for_accept = True)
     nft = deploy_result.deployed_contract
     print("proxy_nft_address=",hex(nft.address))
 
@@ -100,6 +100,17 @@ async def setup():
         calldata=[nft.address],
     )
     invoke_transaction = await account.execute(call, max_fee=int(1e16))
+
+    #TRANSFER NFT OWNERSHIP TO MAIN
+    call = Call(
+        to_addr=nft.address,
+        selector=get_selector_from_name("transferOwnership"),
+        calldata=[main.address],
+    )
+    invoke_transaction = await account.execute(call, max_fee=int(1e16))
+
+    # Sleep 30 seconds before continue to avoid 429 Too Many Requests from gateway.
+    await asyncio.sleep(30)
 
     #COMPILE/DECLARE CHALLENGES
     print("Compiling, declaring and adding challenges.")
@@ -153,7 +164,7 @@ async def setup():
                 max_fee=int(1e16)
             )
 
-        await declare_result.wait_for_acceptance()
+        #await declare_result.wait_for_acceptance(wait_for_accept = True)
 
         challenge_class_hash = declare_result.class_hash
         # Auxiliary smart contracts with 0 points aren't added to main contract.
