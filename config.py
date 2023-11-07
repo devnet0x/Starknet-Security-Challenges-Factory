@@ -22,5 +22,5 @@ CHALLENGE_CONTRACTS = [
     {"contract_name": "challenge8_erc223", "cairo_version": 0, "challenge_number": 8, "points": 0},
     {"contract_name": "challenge9", "cairo_version": 0, "challenge_number": 9, "points": 500},
     {"contract_name": "challenge10", "cairo_version": 2, "challenge_number": 10, "points": 700},
-    {"contract_name": "challenge11", "cairo_version": 0, "challenge_number": 11, "points": 300},
+    {"contract_name": "challenge11", "cairo_version": 2, "challenge_number": 11, "points": 300},
 ]
