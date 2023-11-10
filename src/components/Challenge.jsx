@@ -160,20 +160,22 @@ function Challenge1Deploy({challengeNumber}) {
     }
 
     let newContractAddress=""
-    if (data)
-    if ((data.status=="ACCEPTED_ON_L2")||data.status=="ACCEPTED_ON_L1")
-      data.events.forEach(event => {
-        let paddedFrom="0x"+event.from_address.substring(2).padStart(64,'0')
-        if (paddedFrom==global.MAIN_CONTRACT_ADDRESS)
-          newContractAddress=event.data[0]
-      })
 
     return (
       <>
         <p><button onClick={handleClick}>Begin Challenge</button></p>
+        {data && (data.status=="ACCEPTED_ON_L2"||data.status=="ACCEPTED_ON_L1") &&
+                data.events.forEach(event => {
+                  let paddedFrom="0x"+event.from_address.substring(2).padStart(64,'0')
+                  let paddedTo="0x"+global.MAIN_CONTRACT_ADDRESS.substring(2).padStart(64,'0')
+                  if (paddedFrom==paddedTo) {
+                    newContractAddress=event.data[0]
+                  }
+                })
+        }
         {error && <div>Error: {JSON.stringify(error)}</div>}
         {data && <div><div>Tx.Hash: {hash}</div> <div>Status: {data.status}  </div></div>}      
-        {data && (data.status=="ACCEPTED_ON_L2"||data.status=="ACCEPTED_ON_L1") && <div> Challenge contract deployed at address: {newContractAddress} </div>}
+        {newContractAddress && <div> Challenge contract deployed at address: {newContractAddress} </div>}
         {data && (data.status=="ACCEPTED_ON_L2"||data.status=="ACCEPTED_ON_L1") && data.events?<div> <Challenge1Check challengeNumber={challengeNumber}/> </div>:<div></div>}
        </>
     )
@@ -199,7 +201,8 @@ function Challenge1Check({challengeNumber}) {
       <>
         <p><button onClick={handleClick}>Check Solution</button></p>
         {error && <div>Error: {JSON.stringify(error)}</div>}
-        {data && <div><div>Tx.Hash: {hash}</div> <div>Status: {data.status}  </div></div>}      
+        {data && <div><div>Tx.Hash: {hash}</div> <div>Status: {data.status}  </div></div>} 
+        {data && (data.status=="ACCEPTED_ON_L2"||data.status=="ACCEPTED_ON_L1") && <ClaimNFT challengeNumber={challengeNumber}/> }    
        </>
     )
   }

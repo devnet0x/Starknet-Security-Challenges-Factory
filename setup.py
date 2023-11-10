@@ -100,6 +100,8 @@ async def setup():
         calldata=[nft.address],
     )
     invoke_transaction = await account.execute(call, max_fee=int(1e16))
+    print("Set NFT address on main.")
+    await asyncio.sleep(10)
 
     #TRANSFER NFT OWNERSHIP TO MAIN
     call = Call(
@@ -108,6 +110,7 @@ async def setup():
         calldata=[main.address],
     )
     invoke_transaction = await account.execute(call, max_fee=int(1e16))
+    print("NFT Ownership transfered to =",hex(main.address))
 
     # Sleep 30 seconds before continue to avoid 429 Too Many Requests from gateway.
     await asyncio.sleep(30)
@@ -167,6 +170,9 @@ async def setup():
         #await declare_result.wait_for_acceptance(wait_for_accept = True)
 
         challenge_class_hash = declare_result.class_hash
+
+        await asyncio.sleep(10)
+        
         # Auxiliary smart contracts with 0 points aren't added to main contract.
         if contract['points'] > 0:
             call = Call(

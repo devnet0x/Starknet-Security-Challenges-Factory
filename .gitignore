@@ -26,3 +26,4 @@ yarn-error.log*
 /__pycache__
 src/global.jsx
 config.py
+src/global.jsx

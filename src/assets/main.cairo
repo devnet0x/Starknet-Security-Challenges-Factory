@@ -1,429 +1,294 @@
 // ######## Main
 // When change this contract interface remember update ABI file at react project.
 
-%lang starknet
-from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.bool import FALSE, TRUE
-from starkware.cairo.common.math import assert_not_equal
-from starkware.cairo.common.math_cmp import is_le
-from starkware.starknet.common.syscalls import deploy,get_caller_address
-from starkware.cairo.common.alloc import alloc
-from starkware.cairo.common.uint256 import Uint256
+#[starknet::interface]
+trait ITestContract<TContractState> {
+   fn isComplete(self: @TContractState) -> bool;
+}
 
-from openzeppelin.upgrades.library import Proxy
+#[starknet::interface]
+trait INFT<TContractState> {
+   fn mint(ref self: TContractState, to: felt252, tokenId: u256);
+   fn setTokenURI(ref self: TContractState, base_token_uri: Array<felt252>, token_uri_suffix: felt252);
+}
 
-// Interface to check challenge solution
-@contract_interface
-namespace ITestContract {
-    func isComplete() -> (result:felt){
+#[starknet::contract]
+mod SecurityChallenge {
+    use starknet::syscalls::deploy_syscall;
+    use core::result::ResultTrait;
+    use starknet::{
+        ContractAddress, get_contract_address, get_caller_address
+    };
+    use array::{ArrayTrait, SpanTrait};
+    use starknet::class_hash::Felt252TryIntoClassHash;
+    use traits::TryInto;
+    use core::traits::Into;
+    use option::OptionTrait;
+    use super::{ITestContractDispatcher, ITestContractDispatcherTrait};
+    use super::{INFTDispatcher, INFTDispatcherTrait};
+    use starknet::syscalls::replace_class_syscall;
+    use starknet::contract_address_try_from_felt252;
+
+
+    // Struct to storage players challenge status.
+    #[derive(Drop, starknet::Store, Serde)]
+    struct player_challenges_struct {
+        address:felt252,
+        resolved:felt252,
+        minted:felt252,
+    }
+
+    // Struct for storage players info.
+    #[derive(Drop, starknet::Store, Serde)]
+    struct player_struct{
+        id:felt252,
+        nickname:felt252,
+        points:felt252,
+        address:felt252,
+    }
+
+    // Struct to storage challenge info.
+    #[derive(Drop, starknet::Store, Serde)]
+    struct challenge_struct{
+        class_hash:felt252,
+        points:felt252,
+    }       
+
+    #[storage]
+    struct Storage {
+        Proxy_admin: felt252,
+        player_challenges: LegacyMap::<(felt252, felt252), player_challenges_struct>,
+        player: LegacyMap::<felt252, player_struct>,
+        registered_players: LegacyMap::<felt252, player_struct>,
+        player_count: felt252,
+        challenges: LegacyMap::<felt252, challenge_struct>,
+        salt: felt252,
+        nft_address: felt252,
+    }
+
+    // Events
+    #[event]
+    #[derive(Drop, starknet::Event)]
+    enum Event {
+        contract_deployed: contract_deployed,
+        e1: e1,
+        e2: e2,
+    }
+
+    #[derive(Drop, starknet::Event)]
+    struct contract_deployed {
+        contract_address: felt252,
+    }
+
+    #[derive(Drop, starknet::Event)]
+    struct e1 {
+        res: felt252,
+    }
+
+    #[derive(Drop, starknet::Event)]
+    struct e2 {
+        res: felt252,
+    }
+
+    #[external(v0)]
+    #[generate_trait]
+    impl SecurityChallengeImpl of ISecurityChallenge {
+        // fn isComplete(self: @ContractState) -> bool {
+        //     let output = self.is_complete.read();
+        //     return(output);
+        // }
+
+        // fn call_me(ref self: ContractState) {
+        //     self.is_complete.write(true);
+        //     return();
+        // }
+
+        // ######## External functions
+
+        // Function to deploy challenges to players
+        fn deploy_challenge(ref self: ContractState, _challenge_number: felt252) -> felt252 {
+            let sender = get_caller_address();
+            let current_salt = self.salt.read();
+            let current_challenge = self.challenges.read(_challenge_number);
+            let class_hash = current_challenge.class_hash;
+            let ctor_calldata:Array<felt252> = ArrayTrait::new();
+
+            let (new_contract_address, _) = deploy_syscall(
+                            class_hash.try_into().unwrap(), // class hash
+                            current_salt,                  // salt
+                            ctor_calldata.span(), 
+                            false               // deploy from zero address
+                            ).unwrap();
+                self.salt.write(current_salt + 1);
+                self.emit(contract_deployed { contract_address: new_contract_address.into() });
+
+                //Assign challenge to player
+                let new_challenge = player_challenges_struct{address:new_contract_address.into(),resolved:false.into(),minted:false.into()};
+                self.player_challenges.write((sender.into(),_challenge_number), new_challenge);
+
+                new_contract_address.into()
+        }
+
+        // Function to test if challenge was completed by player
+        fn test_challenge(ref self: ContractState, _challenge_number: felt252) -> felt252 {
+            let sender = get_caller_address();
+            let current_player_challenge = self.player_challenges.read((sender.into(),_challenge_number));
+            
+            //Check if is already resolved
+            assert(current_player_challenge.resolved == false.into(), 'Challenge already resolved');
+
+            //Check if resolved
+            let challenge_contract = current_player_challenge.address;
+            let _result: bool = ITestContractDispatcher { contract_address: challenge_contract.try_into().unwrap() }.isComplete();
+            assert(_result == true, 'Challenge not resolved');
+            
+            //At this point we know challenge was completed sucessfully
+
+            //Update player resolved challenges
+            let new_challenge = player_challenges_struct {address: current_player_challenge.address, resolved: true.into(), minted: false.into()};
+            self.player_challenges.write((sender.into(),_challenge_number),new_challenge);
+
+            //Get player info
+            let current_player = self.player.read(sender.into());
+            let current_challenge = self.challenges.read(_challenge_number);
+            let mut player_id: felt252 = current_player.id;
+
+            // First time, get a new player id to add player to ranking
+            if current_player.points == 0 {
+                player_id = self.player_count.read();
+                self.player_count.write(self.player_count.read() + 1);
+            }
+
+            // update player points
+            let player_points = current_player.points + current_challenge.points;
+            let player_info = player_struct {id: player_id, nickname: current_player.nickname, points: player_points, address: sender.into()};
+            self.player.write( sender.into(), player_info);
+
+            //Add to ranking (sort in frontend)
+            let player_info = player_struct {id: player_id, nickname: current_player.nickname, points: player_points, address: sender.into()};
+            self.registered_players.write( player_id, player_info);
+
+            _result.into()
+        }
+
+        // Function to mint an NFT after resolve a challenge
+        fn mint(ref self: ContractState, _challenge_number: felt252) {
+            let sender = get_caller_address();
+            let current_player_challenge = self.player_challenges.read((sender.into(),_challenge_number));
+
+            //Check if is already resolved
+            assert(current_player_challenge.resolved == true.into(), 'Challenge not resolved yet');
+
+            //Check if is already minted
+            assert(current_player_challenge.minted == false.into(), 'Challenge already minted');
+
+            // Mint NFT
+            // warn: libfunc `bytes31_const` is not allowed in the libfuncs list `Default libfunc list`
+            let _tokenId : u256 = u256 { low: _challenge_number.try_into().unwrap(), high: 0_u128 };
+            let nft : felt252 = self.nft_address.read();
+            INFTDispatcher { contract_address: nft.try_into().unwrap() }.mint(sender.into(), _tokenId);
+
+            //Update player minted challenges
+            let new_challenge = player_challenges_struct {address: current_player_challenge.address, resolved: true.into(), minted: true.into()};
+            self.player_challenges.write((sender.into(),_challenge_number),new_challenge);
+        }
+
+        // Get player total points
+        fn get_points(self: @ContractState, _player: felt252) -> felt252 {
+            let current_player = self.player.read(_player.into());
+            current_player.points.into()
+        }
+        
+        // Get if challenge is already completed by player
+        fn get_challenge_status(self: @ContractState, _player: felt252, _challenge_number: felt252) -> felt252 {
+            let current_challenge = self.player_challenges.read((_player.into(),_challenge_number));
+            current_challenge.resolved.into()
+        }
+
+        // Get if challenge is already completed by player
+        fn get_mint_status(self: @ContractState, _player: felt252, _challenge_number: felt252) -> felt252 {
+            let current_challenge = self.player_challenges.read((_player.into(),_challenge_number));
+            current_challenge.minted.into()
+        }
+
+        // Get player nickname
+        fn get_nickname(self: @ContractState, _player: felt252) -> felt252 {
+            let current_player = self.player.read(_player.into());
+            current_player.nickname.into()
+        }
+        
+        //Set player nickname
+        fn set_nickname(ref self: ContractState, _nickname: felt252) {
+            let sender = get_caller_address();
+            let current_player = self.player.read(sender.into());
+            let player_points = current_player.points;
+            //Check if already resolved
+            assert(player_points != 0, 'End a challenge before nickname');
+
+            let player_info = player_struct {id: current_player.id, nickname: _nickname, points: player_points, address: sender.into()};
+            self.player.write( sender.into(), player_info);
+            let player_info = player_struct {id: current_player.id, nickname: _nickname, points: player_points, address: sender.into()};
+            self.registered_players.write( current_player.id, player_info);
+        }
+            
+        // Get players ranking (not ordered)
+        fn get_ranking(self: @ContractState) -> Array<player_struct> {
+            let total = self.player_count.read();
+            let mut player_array: Array<player_struct> = ArrayTrait::new();
+            let mut i = 0;
+            loop {
+                if i == total {
+                    break;
+                }
+                let current_player = self.registered_players.read(i);
+                player_array.append(current_player);
+                i = i + 1;
+            };
+            
+            player_array
+        }
+
+        // Proxy function
+        fn upgrade(ref self: ContractState, new_class_hash: core::starknet::class_hash::ClassHash) ->felt252 {
+            //Only owner can access this function
+            assert(
+                contract_address_try_from_felt252(self.Proxy_admin.read()).unwrap() == get_caller_address(),
+                'Only owner can access function.'
+            );
+
+            replace_class_syscall(new_class_hash);
+            1
+        }
+
+        //
+        // Getters
+        //
+
+        fn getPlayerCount(self: @ContractState) -> felt252 {
+            self.player_count.read()
+        }
+        
+        fn updateChallenge(ref self: ContractState, challenge_id: felt252, new_class_hash :felt252, new_points:felt252) {
+            //Only owner can access this function
+            assert(
+                contract_address_try_from_felt252(self.Proxy_admin.read()).unwrap() == get_caller_address(),
+                'Only owner can access function.'
+            );
+
+            let new_challenge = challenge_struct{ class_hash: new_class_hash, points: new_points};
+            self.challenges.write( challenge_id, new_challenge);
+        }
+        
+        fn setNFTAddress(ref self: ContractState, new_nft_address: felt252) {
+            //Only owner can access this function
+            assert(
+                contract_address_try_from_felt252(self.Proxy_admin.read()).unwrap() == get_caller_address(),
+                'Only owner can access function'
+            );
+
+            self.nft_address.write(new_nft_address);
+        }
+        
     }
 }
 
-// Interface to NFT
-@contract_interface
-namespace INFT {
-    func mint(to: felt, tokenId: Uint256){
-    }
-    
-    func setTokenURI(base_token_uri_len: felt, base_token_uri: felt*, token_uri_suffix: felt){
-    }
-}
-// ######## Storage variables and structs
-
-// Struct to storage players challenge status.
-struct player_challenges_struct{
-    address:felt,
-    resolved:felt,
-    minted:felt,
-}
-
-// Define a storage variable for players challenge status.
-@storage_var
-func player_challenges(player:felt,challenge_number:felt) -> (res: player_challenges_struct) {
-}
-
-// Struct for storage players info.
-struct player_struct{
-    id:felt,
-    nickname:felt,
-    points:felt,
-    address:felt,
-}
-
-//Variable to query player data by address
-@storage_var
-func player(player_address:felt) -> (res:player_struct) {
-}
-
-//Variable to query player data by id (used for ranking)
-@storage_var
-func registered_players(player_id:felt) -> (res:player_struct) {
-}
-
-// Total players (players added when complete his first challenge)
-@storage_var
-func player_count() -> (res:felt) {
-}
-
-// Struct to storage challenge info.
-struct challenge_struct{
-    class_hash:felt,
-    points:felt,
-}
-
-// Define a storage variable for the challenges info.
-@storage_var
-func challenges(challenge_number:felt) -> (res: challenge_struct) {
-}
-
-// Define a storage variable for the salt.
-@storage_var
-func salt() -> (value: felt) {
-}
-
-// Define a storage variable for the NFT Collection Address.
-@storage_var
-func nft_address() -> (value: felt) {
-}
-
-// ######## Events
-
-// An event emitted whenever deploy challenges.
-@event
-func contract_deployed(contract_address: felt) {
-}
-
-@event
-func e1(res: felt) {
-}
-
-@event
-func e2(res: felt) {
-}
-// ######## External functions
-
-// Function to deploy challenges to players
-@external
-func deploy_challenge{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    _challenge_number: felt
-    ) -> (new_contract_address:felt) {
-    alloc_locals;
-    let (sender) = get_caller_address();
-    let (current_salt) = salt.read();
-    let (current_challenge) = challenges.read(_challenge_number);
-    let class_hash = current_challenge.class_hash;
-    let (ctor_calldata) = alloc();
-
-    let le : felt = is_le(_challenge_number, 4);
-
-    if (le == 1){
-       let (new_contract_address) = deploy(
-            class_hash=class_hash,
-            contract_address_salt=current_salt,
-            constructor_calldata_size=0,
-            constructor_calldata=ctor_calldata,
-            //constructor_calldata=cast(new (sender,), felt*),
-            deploy_from_zero=FALSE,
-        );
-        tempvar syscall_ptr = syscall_ptr;
-        tempvar pedersen_ptr = pedersen_ptr;
-        tempvar range_check_ptr = range_check_ptr;
-    } else {
-        let (new_contract_address) = deploy(
-            class_hash=class_hash,
-            contract_address_salt=current_salt,
-            constructor_calldata_size=0,
-            constructor_calldata=ctor_calldata,
-            //constructor_calldata=cast(new (sender,), felt*),
-            deploy_from_zero=FALSE,
-        );
-        tempvar syscall_ptr = syscall_ptr;
-        tempvar pedersen_ptr = pedersen_ptr;
-        tempvar range_check_ptr = range_check_ptr;
-    }
-
-
-    salt.write(value=current_salt + 1);
-
-    contract_deployed.emit(
-        contract_address=new_contract_address
-    );
-
-    //Assign challenge to player
-    let new_challenge = player_challenges_struct(address=new_contract_address,resolved=FALSE,minted=FALSE);
-    player_challenges.write(sender,_challenge_number,new_challenge);
-
-    return (new_contract_address,);
-}
-
-
-// Function to test if challenge was completed by player
-@external
-func test_challenge{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    _challenge_number: felt
-    ) -> (_result:felt) {
-    alloc_locals;
-    let (sender) = get_caller_address();
-    let (current_player_challenge) = player_challenges.read(sender,_challenge_number);
-
-    //Check if is already resolved
-    with_attr error_message("Challenge already resolved.") {
-        assert_not_equal (current_player_challenge.resolved,TRUE);
-    }
-
-    //Check if resolved
-    // if (_challenge_number == 1000){
-    //     let (_result) = ITestContract.isComplete3(current_player_challenge.address,sender);
-    //     tempvar syscall_ptr = syscall_ptr;
-    //     tempvar pedersen_ptr = pedersen_ptr;
-    //     tempvar range_check_ptr = range_check_ptr;
-    // } else {
-        let (_result) = ITestContract.isComplete(current_player_challenge.address);
-        // tempvar syscall_ptr = syscall_ptr;
-        // tempvar pedersen_ptr = pedersen_ptr;
-        // tempvar range_check_ptr = range_check_ptr;
-    // }
-    with_attr error_message("Challenge not resolved.") {
-        assert_not_equal (_result,FALSE);
-    }
-
-    //At this point we know challenge was completed sucessfully
-
-    //Update player resolved challenges
-    let new_challenge = player_challenges_struct(address=current_player_challenge.address,resolved=TRUE,minted=FALSE);
-    player_challenges.write(sender,_challenge_number,new_challenge);
-    
-    let (current_player) = player.read(sender);
-    let (current_challenge)=challenges.read(_challenge_number);
-    let player_id = current_player.id;
-    // First time, get a new player id to add player to ranking
-    if (current_player.points==0){
-        let (player_id) = player_count.read();
-        let (new_count)=player_count.read();
-        let new_count2=new_count+1;
-        player_count.write(new_count2);
-        tempvar player_id = player_id;
-        tempvar syscall_ptr = syscall_ptr;
-        tempvar pedersen_ptr = pedersen_ptr;
-        tempvar range_check_ptr = range_check_ptr;
-    }else{
-        tempvar player_id = player_id;
-        tempvar syscall_ptr = syscall_ptr;
-        tempvar pedersen_ptr = pedersen_ptr;
-        tempvar range_check_ptr = range_check_ptr;
-    }
-    
-    //Update player points
-    let player_points = current_player.points + current_challenge.points;
-    player.write(sender,player_struct(id=player_id,nickname=current_player.nickname,points=player_points,address=sender));
-    //Add to ranking (sort in frontend)
-    registered_players.write(player_id,player_struct(id=player_id,nickname=current_player.nickname,points=player_points,address=sender));
-    
-
-    return (_result=_result,);
-}
-
-// Function to mint an NFT after resolve a challenge
-@external
-func mint{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    _challenge_number: felt
-    ) {
-    alloc_locals;
-    let (sender) = get_caller_address();
-    let (current_player_challenge) = player_challenges.read(sender,_challenge_number);
-
-    //Check if is already resolved
-    with_attr error_message("Challenge not resolved yet.") {
-        assert_not_equal (current_player_challenge.resolved,FALSE);
-    }
-
-    //Check if is already minted
-    with_attr error_message("Challenge already minted.") {
-        assert_not_equal (current_player_challenge.minted,TRUE);
-    }
-
-    // Mint NFT
-    let _tokenId : Uint256 = Uint256(_challenge_number, 0);
-    let nft : felt = nft_address.read();
-    INFT.mint(contract_address=nft, //NFT proxy contract address
-            to=sender,
-            tokenId=_tokenId);
-
-    //Update player minted challenges
-    let new_challenge = player_challenges_struct(address=current_player_challenge.address,resolved=TRUE,minted=TRUE);
-    player_challenges.write(sender,_challenge_number,new_challenge);
-
-    return ();
-}
-
-// Get player total points
-@view
-func get_points{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    _player: felt
-    ) -> (_points:felt) {
-    alloc_locals;
-    let (current_player)=player.read(_player);
-    return(_points=current_player.points,);
-}
-
-// Get if challenge is already completed by player
-@view
-func get_challenge_status{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    _player: felt, _challenge_number: felt
-    ) -> (_resolved:felt) {
-    alloc_locals;
-    let (current_challenge)=player_challenges.read(_player,_challenge_number);
-    return(_resolved=current_challenge.resolved,);
-}
-
-// Get if challenge is already completed by player
-@view
-func get_mint_status{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    _player: felt, _challenge_number: felt
-    ) -> (_minted:felt) {
-    alloc_locals;
-    let (current_challenge)=player_challenges.read(_player,_challenge_number);
-    return(_minted=current_challenge.minted,);
-}
-
-// Get player nickname
-@view
-func get_nickname{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    _player: felt) -> (_nickname:felt) {
-    alloc_locals;
-    let (current_player)=player.read(_player);
-    return(_nickname=current_player.nickname,);
-}
-
-
-//Set player nickname
-@external
-func set_nickname{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    _nickname: felt
-    ) -> () {
-    let (sender) = get_caller_address();
-    let (current_player) = player.read(sender);
-    let player_points = current_player.points;
-    //Check if already resolved
-    with_attr error_message("You must finish a challenge before set nickname.") {
-        assert_not_equal(player_points,0);
-    }
-    player.write(sender,player_struct(id=current_player.id,nickname=_nickname,points=player_points,address=current_player.address));
-    registered_players.write(current_player.id,player_struct(id=current_player.id,nickname=_nickname,points=player_points,address=current_player.address));
-    
-    return ();
-}
-
-
-// Set ranking array (recursive)
-func setPlayer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    _player_array:player_struct*,
-    i:felt,
-    total:felt) -> (){
-    alloc_locals;
-    //Check if last element
-    if (i==total){
-        return();
-    }
-    
-    let (current_player)=registered_players.read(i);
-    assert _player_array[i]=current_player;
-    setPlayer(_player_array,i+1,total);
-
-    return();
-}
-
-// Get players ranking (not ordered)
- @view
- func get_ranking{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (_player_list_len:felt,_player_list:player_struct*) {
-    alloc_locals;
-    let (local player_array: player_struct*) = alloc();
-    let (total) = player_count.read();
-    setPlayer(player_array,0,total);
-    return(_player_list_len=total,_player_list=player_array,);
- }
-
-// ******************************************
-// ******************************************
-// SPDX-License-Identifier: MIT *************
-// ******************************************
-// ******************************************
-
-//
-// Initializer
-//
-
-@external
-func initializer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    proxy_admin: felt
-) {
-    Proxy.initializer(proxy_admin);
-    return ();
-}
-
-//
-// Upgrades
-//
-
-@external
-func upgrade{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    new_implementation: felt
-) {
-    Proxy.assert_only_admin();
-    Proxy._set_implementation_hash(new_implementation);
-    return ();
-}
-
-//
-// Getters
-//
-
-@view
-func getImplementationHash{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
-    implementation: felt
-) {
-    return Proxy.get_implementation_hash();
-}
-
-@view
-func getAdmin{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (admin: felt) {
-    return Proxy.get_admin();
-}
-
-@view
-func getPlayerCount{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (total: felt) {
-    alloc_locals;
-    let (cant)=player_count.read();
-    return(total=cant,);
-}
-
-
-//
-// Setters
-//
-
-@external
-func setAdmin{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(new_admin: felt) {
-    Proxy.assert_only_admin();
-    Proxy._set_admin(new_admin);
-    return ();
-}
-
-@external
-func updateChallenge{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    challenge_id: felt,
-    new_class_hash :felt,
-    new_points:felt) {
-    Proxy.assert_only_admin();
-    let new_challenge = challenge_struct(class_hash=new_class_hash,points=new_points);
-    challenges.write(challenge_id,new_challenge);
-    return ();
-}
-
-@external
-func setNFTAddress{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(new_nft_address: felt) {
-    Proxy.assert_only_admin();
-
-    nft_address.write(new_nft_address);
-    return ();
-}
