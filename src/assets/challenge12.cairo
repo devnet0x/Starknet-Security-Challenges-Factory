@@ -1,37 +1,39 @@
-#[contract]
+#[starknet::interface]
+trait IVault<TContractState> {
+    fn unlock(ref self: TContractState, _password: felt252);
+    fn isComplete(self: @TContractState) -> bool;
+}
+#[starknet::contract]
+mod Vault {
+    use starknet::{contract_address_to_felt252, get_tx_info};
 
-mod Vault {   
-    use starknet::contract_address::contract_address_to_felt252;
-    use box::BoxTrait;
-
+    #[storage]
     struct Storage {
         locked: bool,
-        password: felt252,
+        password: felt252
     }
 
     #[constructor]
-    fn constructor() {
-        let tx_info = starknet::get_tx_info().unbox();
+    fn constructor(ref self: ContractState) {
+        let tx_info = get_tx_info().unbox();
         let param1: felt252 = tx_info.nonce;
         let param2: felt252 = contract_address_to_felt252(tx_info.account_contract_address);
-        
-        let _password:felt252 = hash::pedersen(param1,param2);
 
-        locked::write(true);
-        password::write(_password);
+        let _password: felt252 = pedersen::pedersen(param1, param2);
+        self.locked.write(true);
+        self.password.write(_password);
     }
 
-    #[external]
-    fn unlock(_password: felt252) {
-        if password::read() == _password {
-            locked::write(false);
+    #[external(v0)]
+    impl Vault of super::IVault<ContractState> {
+        fn unlock(ref self: ContractState, _password: felt252) {
+            if (self.password.read() == _password) {
+                self.locked.write(false);
+            }
         }
-        return();
-    }
-
-    #[view]
-    fn isComplete() -> bool {
-        assert(locked::read()==false,'Challenge not resolved');
-        return(true);
+        fn isComplete(self: @ContractState) -> bool {
+            assert(!self.locked.read(), 'challenge not resolved');
+            true
+        }
     }
 }
