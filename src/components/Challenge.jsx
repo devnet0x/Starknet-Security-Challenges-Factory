@@ -15,6 +15,7 @@ import challengeCode4 from '../assets/challenge4.cairo'
 import challengeCode5 from '../assets/challenge5.cairo'
 import challengeCode6 from '../assets/challenge6.cairo'
 import challengeCode7 from '../assets/challenge7.cairo'
+import challengeCode7_erc20 from '../assets/challenge7_erc20.cairo'
 import challengeCode8 from '../assets/challenge8_main.cairo'
 import challenge8ERC20Code from '../assets/challenge8_erc20.cairo'
 import challenge8ERC223Code from '../assets/challenge8_erc223.cairo'
@@ -261,7 +262,14 @@ export default function Challenge({challengeNumber}) {
     const [text2, setText2] = React.useState();
     const [text3, setText3] = React.useState(); 
     const [text4, setText4] = React.useState();
-    
+    if (challengeNumber==7){
+      fetch(challengeCode7_erc20)
+        .then((response) => response.text())
+        .then((textContent) => {
+          setText2(textContent); 
+        });
+    }
+
     if (challengeNumber==8){
       fetch(challenge8ERC223Code)
         .then((response) => response.text())
@@ -470,7 +478,16 @@ export default function Challenge({challengeNumber}) {
                             <SyntaxHighlighter language="rust" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
                               {text3}
                             </SyntaxHighlighter>
-                          </div>:challengeNumber>11?
+                          </div>:challengeNumber==7?
+                          <div>
+                            <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
+                            {text}
+                            </SyntaxHighlighter>
+                            Custom_ERC20:
+                            <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
+                              {text2}
+                            </SyntaxHighlighter>
+                          </div>:challengeNumber>9?
                           <div>
                             <SyntaxHighlighter language="rust" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
                             {text}

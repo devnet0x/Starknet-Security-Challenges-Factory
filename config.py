@@ -1,7 +1,7 @@
 CAIRO_MANIFEST_PATH = "/home/kali/Downloads/cairo-2.0.0/Cargo.toml"
 
 CORE_CONTRACTS = [
-    {"contract_name": "main", "cairo_version": 0},
+    {"contract_name": "main", "cairo_version": 2},
     {"contract_name": "proxy", "cairo_version": 0},
     {"contract_name": "nft", "cairo_version": 0},
 ]
@@ -23,4 +23,5 @@ CHALLENGE_CONTRACTS = [
     {"contract_name": "challenge9", "cairo_version": 0, "challenge_number": 9, "points": 500},
     {"contract_name": "challenge10", "cairo_version": 2, "challenge_number": 10, "points": 700},
     {"contract_name": "challenge11", "cairo_version": 2, "challenge_number": 11, "points": 300},
+    {"contract_name": "challenge12", "cairo_version": 2, "challenge_number": 11, "points": 700},
 ]
