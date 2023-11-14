@@ -1,324 +1,248 @@
-// SPDX-License-Identifier: MIT
-
-%lang starknet
-
-from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.uint256 import Uint256
-from starkware.cairo.common.alloc import alloc
-from openzeppelin.security.pausable.library import Pausable
-from openzeppelin.access.ownable.library import Ownable
-from openzeppelin.upgrades.library import Proxy
-from ERC1155 import ERC1155    //Used to mint nft
-from ERC721_metadata import (  //Used to manage url with strings length>31
-    ERC721_Metadata_initializer,
-    ERC721_Metadata_tokenURI,
-    ERC721_Metadata_setBaseTokenURI,
-)
-
-
-
-// ******************************************
-// ******** ERC1155 GETTERS FUNCTIONS *******
-// ******************************************
-
-@view
-func tokenURI{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    token_id: Uint256
-) -> (token_uri_len: felt, token_uri: felt*) {
-    alloc_locals;
-    let (token_uri_len, token_uri) = ERC721_Metadata_tokenURI(token_id);
-    return (token_uri_len=token_uri_len, token_uri=token_uri);
-}
-
-@view
-func paused{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (paused: felt) {
-    return Pausable.is_paused();
-}
-
-@view
-func owner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (owner: felt) {
-    return Ownable.owner();
-}
-
-// ******************************************
-// ******** ERC721 GETTERS FUNCTIONS ********
-// ******************************************-
-
-@view
-func name{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (name: felt) {
-    alloc_locals;
-    let _name=8788796431866658658398952019965843793638368666295317285909331142003;//'Starknet Security Challenges'
-    return (_name,);
-}
-
-@view
-func symbol{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (symbol: felt) {
-    alloc_locals;
-    let _symbol=5460803;//'SSC'
-    return (_symbol,);
-}
-
-// ******************************************
-// **** ERC1155 BLOCKED GETTERS FUNCTIONS ***
-// ******************************************
-@view
-func balanceOf{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    owner: felt
-) -> (balance: Uint256) {
-    Ownable.assert_only_owner();
-    // This not working because needs tokenId as function parameter
-    return ERC1155.balance_of(owner, Uint256(0,0));
-}
-
-@view
-func isApprovedForAll{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    account: felt, operator: felt
-) -> (approved: felt) {
-    Ownable.assert_only_owner();
-    // This doent work, this nft cant be transfered
-    return ERC1155.is_approved_for_all(account, operator);
-}
-
-@view
-func ownerOf{
-        syscall_ptr : felt*,
-        pedersen_ptr : HashBuiltin*,
-        range_check_ptr
-    }(tokenId: Uint256) -> (owner: felt){
-        Ownable.assert_only_owner();
-        // This doesnt work, just for compatibility with erc721
-        return (0,);
-    }
-
-@view
-func getApproved{
-        syscall_ptr : felt*,
-        pedersen_ptr : HashBuiltin*,
-        range_check_ptr
-    }(tokenId: Uint256) -> (approved: felt){
-        Ownable.assert_only_owner();
-        // This doesnt work, just for compatibility with erc721
-        return (0,);
-    }
-
-// ******************************************
-// ****** ERC1155 EXTERNAL FUNCTIONS ********
-// ******************************************
-
-@external
-func transferOwnership{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    newOwner: felt
-) {
-    Ownable.transfer_ownership(newOwner);
-    return ();
-}
-
-@external
-func pause{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
-    Proxy.assert_only_admin();
-    Pausable._pause();
-    return ();
-}
-
-@external
-func unpause{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
-    Proxy.assert_only_admin();
-    Pausable._unpause();
-    return ();
-}
-
-@external
-func mint{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    to: felt, tokenId: Uint256
-) {
-    Pausable.assert_not_paused();
-    Ownable.assert_only_owner();
-    let (data:felt*) = alloc();
-    ERC1155._mint(to, tokenId, Uint256(1,0), 0, data);
-    return ();
-}
-
-@external
-func safeMint{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    to: felt, tokenId: Uint256, data_len: felt, data: felt*, tokenURI: felt
-) {
-    Pausable.assert_not_paused();
-    Ownable.assert_only_owner();
-    let (data:felt*) = alloc();
-    ERC1155._mint(to, tokenId, Uint256(1,0), 0, data);
-    return ();
-}
-
-@external
-func setTokenURI{pedersen_ptr: HashBuiltin*, syscall_ptr: felt*, range_check_ptr}(
-    base_token_uri_len: felt, base_token_uri: felt*, token_uri_suffix: felt
-) {
-    Pausable.assert_not_paused();
-    Proxy.assert_only_admin();
-    ERC721_Metadata_setBaseTokenURI(base_token_uri_len, base_token_uri, token_uri_suffix);
-    return ();
-}
-
-@external
-func burn{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    from_: felt, id: Uint256
-) {
-    Proxy.assert_only_admin();
-    //ERC1155.assert_owner_or_approved(owner=from_); //Token owner cant burn, only contract owner
-    ERC1155._burn(from_, id, Uint256(1,0));
-    return ();
-}
-
-@external
-func renounceOwnership{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
-    Ownable.renounce_ownership();
-    return ();
-}
-
-// ******************************************
-// ******** ERC1155 BLOCKED FUNCTIONS *******
-// ******************************************
-
-@external
-func setApprovalForAll{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    operator: felt, approved: felt
-) {
-    Ownable.assert_only_owner();
-    // This doent work, this nft cant be transfered
-    return ();
-}
-
-@external
-func safeTransferFrom{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    from_: felt, to: felt, id: Uint256, value: Uint256, data_len: felt, data: felt*
-) {
-    Ownable.assert_only_owner();
-    // This doent work, this nft cant be transfered
-    return ();
+#[starknet::interface]
+trait IERC20<TContractState> {
+    fn transferFrom(
+        ref self: TContractState, sender: felt252, recipient: felt252, amount: u256
+    ) -> bool;
+    fn balanceOf(self: @TContractState, account: felt252) -> u256;
+    fn transfer(ref self: TContractState, recipient: felt252, amount: u256) -> bool;
 }
 
 
-// ******************************************
-// ***** ERC721 COMPATIBILITY FUNCTIONS *****
-// ******************************************
-
-@external
-func approve{
-        pedersen_ptr: HashBuiltin*,
-        syscall_ptr: felt*,
-        range_check_ptr
-    }(to: felt, tokenId: Uint256){
-        Ownable.assert_only_owner();
-        // This doesnt work, just for compatibility with erc721
-        return ();
-    }
-
-
-@external
-func transferFrom{
-        pedersen_ptr: HashBuiltin*,
-        syscall_ptr: felt*,
-        range_check_ptr
-    }(
-        from_: felt,
-        to: felt,
-        tokenId: Uint256
-    ){
-        Ownable.assert_only_owner();
-        // This doesnt work, just for compatibility with erc721
-        return ();
-    }
-
-// ******************************************
-// ** FOR BRAAVOS COMPATIBILITY FUNCTIONS ***
-// ******************************************
-
-@view
-func uri{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(token_id: Uint256) -> (
-    token_uri_len: felt, token_uri: felt*
-) {
-    alloc_locals;
-    let (token_uri_len, token_uri) = ERC721_Metadata_tokenURI(token_id);
-    return (token_uri_len=token_uri_len, token_uri=token_uri);
-}
-
-@view
-func balanceOfBatch{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    accounts_len: felt, accounts: felt*, ids_len: felt, ids: Uint256*
-) -> (balances_len: felt, balances: Uint256*) {
-    Ownable.assert_only_owner();
-    // This doesnt work, just for compatibility with braavos
-    return ERC1155.balance_of_batch(accounts_len, accounts, ids_len, ids);
-}
-
-// ******************************************
-// ************ PROXY FUNCTIONS *************
-// ******************************************
-
-//
-// Initializer
-//
-
-@external
-func initializer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    proxy_admin: felt,  // Account2  is the proxy admin
-    owner: felt         // Main proxy address is the owner
-) {
-     alloc_locals;
-    ERC1155.initializer('');
-    Ownable.initializer(owner);
-
-    let base_token_uri_len=4;
-    let (base_token_uri) = alloc();
-    assert base_token_uri[0]=184555836509371486645351865271880215103735885104792769856590766422418009699; // str_to_felt("https://raw.githubusercontent.c")
-    assert base_token_uri[1]=196873592232662656702780857357828712082600550956565573228678353357572222275; // str_to_felt("om/devnet0x/Starknet-Security-C")
-    assert base_token_uri[2]=184424487222284609723570330230738705782107139797158045865232337081591886693; // str_to_felt("hallenges-Factory/main/src/asse")
-    assert base_token_uri[3]=32777744851301423;                                                           // str_to_felt("ts/nft/")  
+#[starknet::contract]
+mod StarknetChallengeNft {
+    use starknet::{
+        ContractAddress, get_contract_address, get_caller_address, contract_address_const,
+        contract_address_to_felt252, contract_address_try_from_felt252
+    };
+    use starknet::syscalls::replace_class_syscall;
     
-    let token_uri_suffix=199354445678;// str_to_felt(".json")
-    ERC721_Metadata_initializer();
-    ERC721_Metadata_setBaseTokenURI(base_token_uri_len, base_token_uri, token_uri_suffix);
+    use zeroable::Zeroable;
+    use traits::TryInto;
+    use option::OptionTrait;
+    use array::ArrayTrait;
+    use core::traits::Into;
 
-    Proxy.initializer(proxy_admin);
-    return ();
-}
+    #[storage]
+    struct Storage {
+        Proxy_admin: felt252,
+        token_uri_1: felt252,
+        token_uri_2: felt252,
+        token_uri_3: felt252,
+        token_uri_4: felt252,
+        ERC1155_balances: LegacyMap::<(u256, felt252), u256>, //<(tokenId,account_address),balance>
+        owner: felt252,
+    }
 
-//
-// Upgrades
-//
+    #[event]
+    #[derive(Drop, starknet::Event)]
+    enum Event {
+        Transfer: Transfer,
+        Approval: Approval,
+        ApprovalForAll: ApprovalForAll,
+        MetadataUpdate: MetadataUpdate,
+        BatchMetadataUpdate: BatchMetadataUpdate,
+    }
 
-@external
-func upgrade{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    new_implementation: felt
-) {
-    Proxy.assert_only_admin();
-    Proxy._set_implementation_hash(new_implementation);
-    return ();
-}
+    #[derive(Drop, starknet::Event)]
+    struct Transfer {
+        from: ContractAddress,
+        to: ContractAddress,
+        token_id: u256
+    }
 
-//
-// Getters
-//
+    #[derive(Drop, starknet::Event)]
+    struct Approval {
+        owner: ContractAddress,
+        approved: ContractAddress,
+        token_id: u256
+    }
 
-@view
-func getImplementationHash{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
-    implementation: felt
-) {
-    return Proxy.get_implementation_hash();
-}
+    #[derive(Drop, starknet::Event)]
+    struct ApprovalForAll {
+        owner: ContractAddress,
+        operator: ContractAddress,
+        approved: bool
+    }
 
-@view
-func getAdmin{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (admin: felt) {
-    return Proxy.get_admin();
-}
+    #[derive(Drop, starknet::Event)]
+    struct MetadataUpdate {
+        token_id: u256,
+    }
 
-//
-// Setters
-//
+    #[derive(Drop, starknet::Event)]
+    struct BatchMetadataUpdate {
+        from_token_id: u256,
+        to_token_id: u256,
+    }
 
-@external
-func setAdmin{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(new_admin: felt) {
-    Proxy.assert_only_admin();
-    Proxy._set_admin(new_admin);
-    return ();
+    #[constructor]
+    fn constructor(ref self: ContractState,) {
+        self.token_uri_1.write(184555836509371486645351865271880215103735885104792769856590766422418009699); // str_to_felt('https://raw.githubusercontent.c')
+        self.token_uri_2.write(196873592232662656702780857357828712082600550956565573228678353357572222275); // str_to_felt('om/devnet0x/Starknet-Security-C')
+        self.token_uri_3.write(184424487222284609723570330230738705782107139797158045865232337081591886693); // str_to_felt('hallenges-Factory/main/src/asse')
+        self.token_uri_4.write(32777744851301423); // str_to_felt('ts/nft/ ');
+
+        // Main core contract is the owner which can mint
+        let main_address: ContractAddress = starknet::contract_address_const::<0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd>();
+        self.owner.write(contract_address_to_felt252(main_address));
+        // Deployer is the admin
+        self.Proxy_admin.write(contract_address_to_felt252(get_contract_address()));
+    }
+
+    #[external(v0)]
+    #[generate_trait]
+    impl IStarknetChallengeNftImpl of IStarknetChallengeNft {
+        fn supportsInterface(self: @ContractState, interface_id: felt252) -> bool {
+            //Adds support for MetadataUpdated as indicated in eip-4906
+            true
+        }
+
+        fn name(self: @ContractState) -> felt252 {
+            let name = 'Starknet Security Challenges';
+            name
+        }
+
+        fn symbol(self: @ContractState) -> felt252 {
+            let symbol = 'SSC';
+            symbol
+        }
+
+        fn transferOwnership(ref self: ContractState, newOwner: felt252) {
+            //Only Admin can access this function
+            assert(
+                contract_address_try_from_felt252(self.Proxy_admin.read()).unwrap() == get_caller_address(),
+                'Only admin can access function.'
+            );
+            self.owner.write(newOwner);
+        }
+
+        fn batchMetadataUpdate(ref self: ContractState, from_token_id: u256, to_token_id: u256) {
+            //Only Admin can access this function
+            assert(
+                contract_address_try_from_felt252(self.Proxy_admin.read()).unwrap() == get_caller_address(),
+                'Only admin can access function.'
+            );
+            self.emit(BatchMetadataUpdate { from_token_id: from_token_id, to_token_id: to_token_id });
+        }
+
+        fn metadataUpdate(ref self: ContractState, token_id: u256) {
+            //Only Admin can access this function
+            assert(
+                contract_address_try_from_felt252(self.Proxy_admin.read()).unwrap() == get_caller_address(),
+                'Only admin can access function.'
+            );
+            self.emit(MetadataUpdate { token_id: token_id });
+        }
+
+        fn setTokenUri(ref self: ContractState, _token_uri: Array<felt252>) {
+            //Only Admin can access this function
+            assert(
+                contract_address_try_from_felt252(self.Proxy_admin.read()).unwrap() == get_caller_address(),
+                'Only admin can access function.'
+            );
+            let mut token_uri = _token_uri;
+            self.token_uri_1.write(token_uri.pop_front().unwrap());
+            self.token_uri_2.write(token_uri.pop_front().unwrap());
+            self.token_uri_3.write(token_uri.pop_front().unwrap());
+            self.token_uri_4.write(token_uri.pop_front().unwrap());
+        }
+
+        fn tokenURI(self: @ContractState, token_id: u256) -> Array<felt252> {
+            let q: u256 = token_id / 10;
+            let r: u256 = token_id % 10;
+            let mut token_uri: Array<felt252> = ArrayTrait::<felt252>::new();
+            token_uri.append(self.token_uri_1.read());
+            token_uri.append(self.token_uri_2.read());
+            token_uri.append(self.token_uri_3.read());
+            token_uri.append(self.token_uri_4.read());
+            if q > 0 {
+                token_uri.append(48+q.try_into().unwrap());
+            };
+            token_uri.append(48+r.try_into().unwrap());
+            token_uri.append(199354445678); // str_to_felt('.json')
+            token_uri
+        }
+
+        fn balanceOf(self: @ContractState, account: ContractAddress) -> u256 {
+            // Do nothing
+            assert(0==1,'Function not implemented.');
+            0_u8.into()
+        }
+
+        fn ownerOf(self: @ContractState, token_id: u256) -> ContractAddress {
+            // Do nothing
+            assert(0==1,'Function not implemented.');
+            Zeroable::zero()
+        }
+
+        fn getApproved(self: @ContractState, token_id: u256) -> ContractAddress {
+            // Do nothing
+            assert(0==1,'Function not implemented.');
+            Zeroable::zero()
+        }
+
+        fn isApprovedForAll(
+            self: @ContractState, owner: ContractAddress, operator: ContractAddress
+        ) -> bool {
+            // Do nothing
+            assert(0==1,'Function not implemented.');
+            false
+        }
+
+        fn approve(ref self: ContractState, to: ContractAddress, token_id: u256) {
+            // Do nothing
+            assert(0==1,'Function not implemented.');
+        }
+
+        fn setApprovalForAll(ref self: ContractState, operator: ContractAddress, approved: bool) {
+            // Do nothing
+            assert(0==1,'Function not implemented.');
+        }
+
+        fn transferFrom(
+            ref self: ContractState, from: ContractAddress, to: ContractAddress, token_id: u256
+        ) {
+            // Do nothing
+            assert(0==1,'Function not implemented.');
+        }
+
+        fn safeTransferFrom(
+            ref self: ContractState,
+            from: ContractAddress,
+            to: ContractAddress,
+            token_id: u256,
+            data: Span<felt252>
+        ) {
+            // Do nothing
+            assert(0==1,'Function not implemented.');
+        }
+
+        fn mint(
+            ref self: ContractState,
+            to: felt252,
+            tokenId: u256,
+        ) {
+            //Only owner (main contract) can mint
+            assert(
+                self.owner.read() == contract_address_to_felt252(get_caller_address()),
+                'Only main can mint.'
+            );
+
+            self.ERC1155_balances.write((tokenId, to), 1.into());
+
+            self.emit(Transfer { from: Zeroable::zero(), to: contract_address_try_from_felt252(to).unwrap(), token_id: tokenId });
+        }
+
+        // Proxy function
+        fn upgrade(ref self: ContractState, new_class_hash: core::starknet::class_hash::ClassHash) ->felt252 {
+            //Only admin can access this function
+            assert(
+                contract_address_try_from_felt252(self.Proxy_admin.read()).unwrap() == get_caller_address(),
+                'Only admin can access function.'
+            );
+
+            replace_class_syscall(new_class_hash);
+            1
+        }
+    }
 }
