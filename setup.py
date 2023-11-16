@@ -14,23 +14,6 @@ from starknet_py.hash.selector import get_selector_from_name
 from starknet_py.net.client_models import Call
 
 async def setup():
-    print("Compiling core contracts.")
-    BUILD_DIR = Path("build")
-    for contract in CORE_CONTRACTS:
-        output = subprocess.run(
-            [
-                "starknet-compile-deprecated",
-                f"./src/assets/{contract['contract_name']}.cairo",
-                "--output",
-                f"{BUILD_DIR}/{contract['contract_name']}.json",
-                "--cairo_path",
-                ".:./src/assets"
-            ],
-            capture_output=True,
-        )
-        if output.returncode != 0:
-            raise RuntimeError(output.stderr)
-
     #ACCOUNT
     key_pair = KeyPair.from_private_key(int("0xe3e70682c2094cac629f6fbed82c07cd", 16))
     local_network_client = GatewayClient("http://localhost:5050") # GOERLI: https://alpha4.starknet.io
@@ -43,65 +26,97 @@ async def setup():
             chain_id=StarknetChainId.TESTNET,
         ),
     )
-    print("Declaring core contracts.")
     print("owner_account=",hex(account.address))
 
+    print("✅Compiling core contracts.")
+    BUILD_DIR = Path("build")
+    for contract in CORE_CONTRACTS:
+        print("Compiling to sierra:",contract['contract_name'])
+        output = subprocess.run(
+                [
+                    f"cargo run --manifest-path {CAIRO_MANIFEST_PATH} --bin starknet-compile ./src/assets/{contract['contract_name']}.cairo {BUILD_DIR}/{contract['contract_name']}.json --single-file"
+                ],
+                capture_output=True,
+                shell=True
+            )
+        if output.returncode != 0:
+            raise RuntimeError(output.stderr)
+    
+        print("Compiling to casm:",contract['contract_name'])
+        output = subprocess.run(
+            [
+                f"cargo run --manifest-path {CAIRO_MANIFEST_PATH} --bin starknet-sierra-compile -- --add-pythonic-hints {BUILD_DIR}/{contract['contract_name']}.json {BUILD_DIR}/{contract['contract_name']}.casm"
+            ],
+            capture_output=True,
+            shell=True
+        )
+        if output.returncode != 0:
+            raise RuntimeError(output.stderr)
+
     #DECLARE MAIN core contract
+    print("✅Declaring main contract.")
     compiled_contract = Path(f"{BUILD_DIR}/main.json").read_text()
+    compiled_contract_casm = Path(f"{BUILD_DIR}/main.casm").read_text()
     declare_result = await Contract.declare(
-        account=account, compiled_contract=compiled_contract, max_fee=int(1e16)
+        account=account, 
+        compiled_contract=compiled_contract, 
+        compiled_contract_casm=compiled_contract_casm,
+        max_fee=int(1e16)
     )
-    await declare_result.wait_for_acceptance(wait_for_accept = True)
+    try:
+        await declare_result.wait_for_acceptance()
+    except Exception as e:
+        print("(Already declared?)",e.args[0].split('\n')[0])
     main_class_hash = declare_result.class_hash
     print("main_class_hash=",hex(main_class_hash))
 
+    #DEPLOY MAIN
+    print("✅Deploying main contract.")
+    deploy_result = await declare_result.deploy(constructor_args = None, max_fee=int(1e16))
+    await deploy_result.wait_for_acceptance()
+    main = deploy_result.deployed_contract
+    print("main_address=",hex(main.address))
+
     #DECLARE NFT core contract    
+    print("✅Declaring nft contract.")
     compiled_contract = Path(f"{BUILD_DIR}/nft.json").read_text()
+    compiled_contract_casm = Path(f"{BUILD_DIR}/nft.casm").read_text()
     declare_result = await Contract.declare(
-        account=account, compiled_contract=compiled_contract, max_fee=int(1e16)
+        account=account, 
+        compiled_contract=compiled_contract,
+        compiled_contract_casm=compiled_contract_casm,
+          max_fee=int(1e16)
     )
-    await declare_result.wait_for_acceptance(wait_for_accept = True)
+    try:
+        await declare_result.wait_for_acceptance()
+    except Exception as e:
+        print("(Already declared?)",e.args[0].split('\n')[0])
     nft_class_hash = declare_result.class_hash
     print("nft_class_hash=",hex(nft_class_hash))
 
-    #DECLARE PROXY
-    compiled_contract = Path(f"{BUILD_DIR}/proxy.json").read_text()
-    declare_result = await Contract.declare(
-        account=account, compiled_contract=compiled_contract, max_fee=int(1e16)
-    )
-    await declare_result.wait_for_acceptance(wait_for_accept = True)
-    print("proxy_class_hash=",hex(declare_result.class_hash))
+    #DEPLOY NFT
+    print("✅Deploying nft contract.")
+    deploy_result = await declare_result.deploy(max_fee=int(1e16))
+    await deploy_result.wait_for_acceptance()
+    nft = deploy_result.deployed_contract
+    print("nft_address=",hex(nft.address))
 
-    #DEPLOY PROXY MAIN
-    print("Deploying core contracts.")
-    constructor_args = {"implementation_hash": main_class_hash, "selector": 0x02dd76e7ad84dbed81c314ffe5e7a7cacfb8f4836f01af4e913f275f89a3de1a, "calldata":{account.address}}
-    deploy_result = await declare_result.deploy(constructor_args=constructor_args,max_fee=int(1e16))
-    await deploy_result.wait_for_acceptance(wait_for_accept = True)
-    main = deploy_result.deployed_contract
-    print("proxy_main_address=",hex(main.address))
-
+    # Update global.jsx with main contract address
     f = open("./src/global.jsx","w+")
     f.write("const global = {}\r\n")
     f.write("global.MAIN_CONTRACT_ADDRESS='%s';\r\n" % hex(main.address))
     f.write("export default global\r\n")
     f.close()
 
-    #DEPLOY PROXY NFT
-    constructor_args = {"implementation_hash": nft_class_hash, "selector": 0x02dd76e7ad84dbed81c314ffe5e7a7cacfb8f4836f01af4e913f275f89a3de1a, "calldata":{account.address, main.address}}
-    deploy_result = await declare_result.deploy(constructor_args=constructor_args,max_fee=int(1e16))
-    await deploy_result.wait_for_acceptance(wait_for_accept = True)
-    nft = deploy_result.deployed_contract
-    print("proxy_nft_address=",hex(nft.address))
-
     #SET NFT ADDRESS ON MAIN
+    print("✅Setting NFT address on main.")
     call = Call(
         to_addr=main.address,
         selector=get_selector_from_name("setNFTAddress"),
         calldata=[nft.address],
     )
     invoke_transaction = await account.execute(call, max_fee=int(1e16))
-    print("Set NFT address on main.")
-    await asyncio.sleep(10)
+    #await asyncio.sleep(10)
 
     #TRANSFER NFT OWNERSHIP TO MAIN
     call = Call(
@@ -113,10 +128,10 @@ async def setup():
     print("NFT Ownership transfered to =",hex(main.address))
 
     # Sleep 30 seconds before continue to avoid 429 Too Many Requests from gateway.
-    await asyncio.sleep(30)
+    #await asyncio.sleep(30)
 
     #COMPILE/DECLARE CHALLENGES
-    print("Compiling, declaring and adding challenges.")
+    print("✅Compiling, declaring and adding challenges.")
     for contract in CHALLENGE_CONTRACTS:
         if contract['cairo_version'] == 0:
             output = subprocess.run(
@@ -134,13 +149,22 @@ async def setup():
                 raise RuntimeError(output.stderr)
         
             compiled_contract = Path(f"{BUILD_DIR}/{contract['contract_name']}.json").read_text()
-            declare_result = await Contract.declare(
-                account=account, compiled_contract=compiled_contract, max_fee=int(1e16)
-            )
+            tries = 3
+            for i in range(tries):
+                try:
+                    declare_result = await Contract.declare(
+                        account=account, compiled_contract=compiled_contract, max_fee=int(1e16))
+                except Exception as e:
+                    if i < tries - 1:
+                        print("Retrying declaration of {contract['contract_name']}...")
+                        continue
+                    else:
+                        raise RuntimeError(e.args[0].split('\n')[0])
+                break
         else:
             output = subprocess.run(
                 [
-                    f"cargo run --manifest-path {CAIRO_MANIFEST_PATH} --bin starknet-compile ./src/assets/{contract['contract_name']}.cairo {BUILD_DIR}/{contract['contract_name']}.json"
+                    f"cargo run --manifest-path {CAIRO_MANIFEST_PATH} --bin starknet-compile ./src/assets/{contract['contract_name']}.cairo {BUILD_DIR}/{contract['contract_name']}.json --single-file"
                 ],
                 capture_output=True,
                 shell=True
@@ -166,12 +190,14 @@ async def setup():
                 compiled_contract_casm=compiled_contract_casm, 
                 max_fee=int(1e16)
             )
-
-        #await declare_result.wait_for_acceptance(wait_for_accept = True)
+        try:
+            await declare_result.wait_for_acceptance()
+        except Exception as e:
+            print("(Already declared?)",e.args[0].split('\n')[0])
 
         challenge_class_hash = declare_result.class_hash
 
-        await asyncio.sleep(10)
+        #await asyncio.sleep(10)
         
         # Auxiliary smart contracts with 0 points aren't added to main contract.
         if contract['points'] > 0:
@@ -184,7 +210,7 @@ async def setup():
             print("challenge_class_hash=",contract['challenge_number'],hex(challenge_class_hash))
         else:
             print("challenge_class_hash=",contract['challenge_number'],hex(challenge_class_hash),"(aux)")
-    print("Done.")
+    print("✅Done.")
 
 
 asyncio.run(setup())

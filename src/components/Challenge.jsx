@@ -90,7 +90,7 @@ function ClaimNFT({challengeNumber}){
   if (error) return <span>Error: {error}</span>
   return(
       <div>
-      {data && !parseInt(data[0].toString())?<div>Already Resolved<br /><ChallengeMint challengeNumber={challengeNumber} /></div>:<div>Already Resolved<br />Already Minted <a href={'https://mintsquare.io/asset/starknet-testnet/0x007d85f33b50c06d050cca1889decca8a20e5e08f3546a7f010325cb06e8963f/'+challengeNumber} target='_blank'>(View)</a></div>}
+      {data && !parseInt(data[0].toString())?<div>Already Resolved<br /><ChallengeMint challengeNumber={challengeNumber} /></div>:<div>Already Resolved<br />Already Minted <a href={'https://testnet.starkscan.co/nft/0x007d85f33b50c06d050cca1889decca8a20e5e08f3546a7f010325cb06e8963f/'+challengeNumber+'#overview'} target='_blank'>(View)</a></div>}
       </div>
   ) 
 }

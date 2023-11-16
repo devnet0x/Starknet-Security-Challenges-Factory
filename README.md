@@ -19,11 +19,11 @@ Here you will find:
 ```
 sudo curl --proto '=https' -tslv1.2 -sSf https://sh.rustup.rs | sh
 ```
-- cairo v2.0.0
+- cairo v2.3.1
 ```
 git clone https://github.com/starkware-libs/cairo/
 cd cairo
-git checkout tags/v2.0.0
+git checkout tags/v2.3.1
 cargo build --all --release
 ```
 - cairo_lang v0.12
@@ -35,21 +35,21 @@ pip3 install cairo-lang
 sudo apt install -y libgmp3-dev
 pip install starknet-devnet
 ```
-- starknet-py 0.170a0+
+- starknet-py 0.18.3+
 ```
-pip install starknet-py==0.17.0a0
+pip install starknet-py==0.18.3
 ```
-- node v16.16.0
+- node v19.6.1+
 ```
 sudo apt-get update
-curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+curl -fsSL https://deb.nodesource.com/setup_19.x | sudo -E bash -
 sudo apt-get install -y nodejs
 ```
 
 # HOW TO INSTALL
 1) Start a local devnet with seed 0
 ```
-starknet-devnet --seed 0 
+starknet-devnet --seed 0 --cairo-compiler-manifest PATH_TO_CAIRO_2.3.1/Cargo.toml
 ```
 2) Clone repository
 ```
@@ -58,7 +58,7 @@ git clone https://github.com/devnet0x/Starknet-Security-Challenges-Factory
 3) Deploy contracts to local devnet
 ```
 cd Starknet-Security-Challenges-Factory
-Edit config.py and set CAIRO_MANIFEST_PATH with your cairo 2 toml path
+Edit config.py and set CAIRO_MANIFEST_PATH with your PATH_TO_CAIRO_2.3.1 toml path
 python setup.py
 ```
 4) Install and start web3 platform
@@ -94,7 +94,7 @@ starknet --gateway_url http://127.0.0.1:5050 --feeder_gateway_url http://127.0.0
 ```
 4) Add your challenge to main contract.
 ```
-starknet --gateway_url http://127.0.0.1:5050 --feeder_gateway_url http://127.0.0.1:5050 --account admin invoke --max_fee 1000000000000000 --address <devnet_proxy_main_address> --function updateChallenge --inputs <challenge_number> <challenge_class_hash> <challenge_points>
+starknet --gateway_url http://127.0.0.1:5050 --feeder_gateway_url http://127.0.0.1:5050 --account admin invoke --max_fee 1000000000000000 --address <devnet_main_address> --function updateChallenge --inputs <challenge_number> <challenge_class_hash> <challenge_points>
 
 
 For example:
@@ -111,15 +111,15 @@ starknet --gateway_url http://127.0.0.1:5050 --feeder_gateway_url http://127.0.0
     "tx_status": "ACCEPTED_ON_L2"
 }
 ```
-6) Add your .cairo file to src/assets
-7) Add your nft image file to src/assets/nft
-8) Add your nft json file to src/assets/nft
+6) Add your new .cairo file to src/assets
+7) Add your new nft image file to src/assets/nft
+8) Add your new nft json file to src/assets/nft
 9) Edit src/components/Challenge.jsx and add your challenge and descriptions.
 10) Edit src/layout/components/menu_config.js and add your challenge to the menu.
 11) Edit src/App.js and add challenge to page route.
 12) Edit config.py and add your challenge in CHALLENGE_CONTRACTS.
 13) Test your challenge in http://localhost:3000
-14) Edit global.jsx and restore testnet main proxy to:
+14) Edit global.jsx and restore testnet main address to:
 ```
 global.MAIN_CONTRACT_ADDRESS='0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd';
 ```
@@ -162,7 +162,7 @@ starknet --account __default__ declare --contract challenge.sierra
 ```
 5) On starkscan/voyager invoke updateChallenge function to add challenge.
 ```
-proxy_main:0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd
+main contract:0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd
 ```
 6) Upload to test environment.
 ```
@@ -182,10 +182,10 @@ vercel --prod
 1) Declare new main.cairo or nft.cairo smart contract.
 2) On starkscan/voyager read getImplementationHash in case of rollback.
 ```
-proxy_main:0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd
-proxy_nft :0x007d85f33b50c06d050cca1889decca8a20e5e08f3546a7f010325cb06e8963f
+main contract:0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd
+nft contract :0x007d85f33b50c06d050cca1889decca8a20e5e08f3546a7f010325cb06e8963f
 ```
 3) On starkscan/voyager invoke upgrade function with new core implementation hash.
 ```
-WARNING!!! IF CLASS_HASH DOESN'T EXIST WE WILL LOST DATA AND PROXY FUNCTIONS.
+WARNING!!! IF CLASS_HASH DOESN'T EXIST WE WILL LOST DATA AND UPGRADE FUNCTIONS.
 ```

@@ -1,9 +1,8 @@
-CAIRO_MANIFEST_PATH = "/home/kali/Downloads/cairo-2.0.0/Cargo.toml"
+CAIRO_MANIFEST_PATH = "/home/kali/Downloads/cairo-2.3.1/Cargo.toml"
 
 CORE_CONTRACTS = [
     {"contract_name": "main", "cairo_version": 2},
-    {"contract_name": "proxy", "cairo_version": 0},
-    {"contract_name": "nft", "cairo_version": 0},
+    {"contract_name": "nft", "cairo_version": 2},
 ]
 
 # points 0 to auxiliary challenge smart contracts
