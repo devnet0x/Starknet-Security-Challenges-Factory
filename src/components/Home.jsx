@@ -40,7 +40,7 @@ function Home() {
         </div>
         <div class='flex-row' role='cell'>
         <p align='center'><b>How to contribute?</b></p>
-        <p align='justify'>PR your own smart contract challenge to the <a href='https://github.com/devnet0x/Starknet-Security-Challenges-Factory/tree/main/src/assets'>
+        <p align='justify'>PR your own smart contract challenge to the <a href='https://github.com/devnet0x/Starknet-Security-Challenges-Factory/'>
         github repo</a> and i will try to add it as son as possible. <br /><br />
         The only requirement is that your Cairo Smart Contract must have a isComplete() external
         function with return TRUE if challenge was succesfully completed.</p>
