@@ -1,71 +1,72 @@
-%lang starknet
-from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.bool import FALSE, TRUE
-from starkware.starknet.common.syscalls import deploy,get_contract_address
-from starkware.cairo.common.uint256 import (Uint256,uint256_eq)
-from starkware.cairo.common.alloc import alloc
+use starknet::{ContractAddress};
 
-@contract_interface
-namespace IERC20 {
-    func balance_of(account: felt) -> (balance: Uint256) {
-    }
+#[starknet::interface]
+trait IChallenge7ERC20<TContractState> {
+    fn balance_of(self: @TContractState, account: ContractAddress) -> u256;
 }
 
-@storage_var
-func vtoken_address() -> (value: felt) {
+#[starknet::interface]
+trait IChallenge7Real<TContractState> {
+    fn isComplete(self: @TContractState) -> bool;
+    fn get_vitalik_address(self: @TContractState) -> ContractAddress;
 }
 
-// Define a storage variable for the salt.
-@storage_var
-func salt() -> (value: felt) {
-}
 
-// ######## Constructor
-@constructor
-func constructor{
-    syscall_ptr: felt*,
-    pedersen_ptr: HashBuiltin*,
-    range_check_ptr,
-}()
-{
-    alloc_locals;
-    let (vitalik_address)=get_contract_address();
-    let (current_salt) = salt.read();
-    let ctor_calldata: felt* = alloc();
-    assert [ctor_calldata] = 94920107574606;//Name VTOKEN
-    assert [ctor_calldata + 1] = 1448365131;//Symbol VTLK
-    assert [ctor_calldata + 2] = 18;//Decimals 18
-    assert [ctor_calldata + 3] = 100*10**18;//Initial Mint 100
-    assert [ctor_calldata + 4] = vitalik_address;//Vitalik address
-    let (new_contract_address) = deploy(
-            class_hash=0x2725a2f08f7e31f1a2f3322759cdd7b5f90b4e0b262e635add9d7b4230ee206,
-            contract_address_salt=current_salt,
-            constructor_calldata_size=5,
-            constructor_calldata=ctor_calldata,
-            deploy_from_zero=FALSE,
-        );
-    salt.write(value=current_salt + 1);
-    vtoken_address.write(new_contract_address);
-    return ();
-}
+#[starknet::contract]
+mod Challenge7Real {
+    use starknet::{
+        ContractAddress, get_contract_address, ClassHash, class_hash_to_felt252, class_hash_const
+    };
+    use super::{IChallenge7ERC20Dispatcher, IChallenge7ERC20DispatcherTrait};
+    use starknet::syscalls::deploy_syscall;
 
-@view
-func isComplete{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (output:felt) {
-    alloc_locals;
-    let (vitalik_address)=get_contract_address();
-    let (vtoken)=vtoken_address.read();
-    let (balance)=IERC20.balance_of(contract_address=vtoken,account=vitalik_address); 
-    let amount: Uint256 = Uint256(0, 0);
-    let (is_equal) = uint256_eq(balance, amount);
-    with_attr error_message("Challenge not completed yet.") {
-        assert is_equal = TRUE;
+    #[storage]
+    struct Storage {
+        vtoken_address: ContractAddress,
+        salt: u128
     }
 
-    return (output=TRUE,);
-}
+    #[constructor]
+    fn constructor(ref self: ContractState) {
+        let vitalik_address: ContractAddress = get_contract_address();
+        let current_salt: felt252 = self.salt.read().into();
+        let ERC20_name = 94920107574606;
+        let ERC20_symbol = 1448365131;
+        let ERC20_intial_supply: u256 = 100000000000000000000;
+        let ERC20_initial_supply_low = ERC20_intial_supply.low;
+        let ERC20_initial_supply_high = ERC20_intial_supply.high;
+        let mut calldata = array![
+            ERC20_name.into(),
+            ERC20_symbol.into(),
+            ERC20_initial_supply_low.into(),
+            ERC20_initial_supply_high.into(),
+            vitalik_address.into()
+        ];
 
-@view
-func get_vtoken_address{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (output:felt) {
-  let (vtoken)=vtoken_address.read();
-  return(output=vtoken);
+        let game_class_hash: ClassHash = class_hash_const::<
+            0x00ce0d8d5deff6775e95fc8a05c68234b30f5131c55bc62e663751a0287da935
+        >();
+
+        let (new_contract_address, _) = deploy_syscall(
+            game_class_hash, current_salt, calldata.span(), false
+        )
+            .expect('failed to deploy counter');
+        self.salt.write(self.salt.read() + 1);
+        self.vtoken_address.write(new_contract_address);
+    }
+
+    #[external(v0)]
+    impl Challenge7Real of super::IChallenge7Real<ContractState> {
+        fn isComplete(self: @ContractState) -> bool {
+            let vitalik_address = get_contract_address();
+            let vtoken: ContractAddress = self.vtoken_address.read();
+            let erc20_dispatcher = IChallenge7ERC20Dispatcher { contract_address: vtoken };
+            let current_balance = erc20_dispatcher.balance_of(vitalik_address);
+            assert(current_balance == 0, 'challenge not completed yet');
+            true
+        }
+        fn get_vitalik_address(self: @ContractState) -> ContractAddress {
+            self.vtoken_address.read()
+        }
+    }
 }
