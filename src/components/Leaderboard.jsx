@@ -1,9 +1,17 @@
 import '../App.css';
-import { useAccount,useConnectors,
-        useStarknetCall,useContract } from '@starknet-react/core';
+import { useAccount,useConnect,Connector,
+        useContractRead,useContract } from '@starknet-react/core';
 import { useState } from 'react' 
 
-import { StarknetConfig, InjectedConnector } from '@starknet-react/core'
+import { goerli, mainnet } from "@starknet-react/chains";
+import {
+  StarknetConfig,
+  publicProvider,
+  argent,
+  braavos,
+  useInjectedConnectors,
+} from "@starknet-react/core";
+
 import mainABI from '../assets/main_abi.json'
 import global from '../global.jsx'
 
@@ -11,32 +19,26 @@ import { feltToString } from '../utils/utils.js'
 
 import ToggleSwitch from './ToggleSwitch.js';
 
-const connectors = [
-  new InjectedConnector({ options: { id: 'braavos' }}),
-  new InjectedConnector({ options: { id: 'argentX' }}),
-]
-
 function Points(){
-        const { contract } = useContract({
-        address: global.MAIN_CONTRACT_ADDRESS,
-        abi: mainABI
-        })
-        const { address } = useAccount()
-        const { data , loading, error, refresh } = useStarknetCall({
-            contract,
-            method: 'get_ranking',
-            args:['0'],
-            options: {
-                watch: true
-            }
-        })
+        const { data, isError, isLoading, error } = useContractRead({
+          functionName: "get_ranking",
+          abi:mainABI,
+          address: global.MAIN_CONTRACT_ADDRESS,
+          watch: true,
+        });
 
-        if (loading) return <span>Loading...</span>
-        if (error) return <span>Error: {error}</span>
+        if (isLoading) return <div>Loading ...</div>;
+        if (isError || !data) return <div>Error: {error?.message}</div>;
 
-        data._player_list.sort((a, b) => parseInt(b.points,16) - parseInt(a.points,16))
-        let data2=JSON.parse(JSON.stringify(data._player_list))
-        
+        // Sort the players by points. 
+        data._player_list.sort((a, b) => Number(b.points) - Number(a.points));
+        // Convert all bigints to strings and all bytes to hex strings.
+        const data2 = data._player_list.map((player) => ({
+          nickname: player.nickname,
+          points: player.points.toString(),
+          address: player.address.toString(16),
+        }));
+  
         return(
             <span>
             <table cellspacing="0" align='center' style={{fontFamily : "Courier New"}}>
@@ -46,10 +48,11 @@ function Points(){
                 <td style={{border : '1px solid'}}>Address</td>
               </tr> 
             {
+              // shortString.decodeShortString(content.nickname).substring(0,12) doesn't display emojis
               data2.map (content =>(
                 <tr> 
                   <td style={{border : '1px solid'}}>{feltToString(content.nickname).substring(0,12)}</td>
-                  <td style={{border : '1px solid'}}>{parseInt(content.points,16)}</td>
+                  <td style={{border : '1px solid'}}>{content.points}</td>
                   <td style={{border : '1px solid'}}>0x{content.address.substring(0,4)}...{content.address.substring(content.address.length - 4)}</td>
                 </tr>
               ))
@@ -61,17 +64,17 @@ function Points(){
 
 
 function ConnectWallet() {
-  const { connect, connectors } = useConnectors()
+  const { connect, connectors } = useConnect()
   const { address } = useAccount()
-  const { disconnect } = useConnectors()
+  const { disconnect } = useConnect()
 
   if (!address) 
   return (
     <div>
-      {connectors.map((connector) => (
-        <p key={connector.id()}>
-          <button onClick={() => connect(connector)}>
-            Connect {connector.id()}
+      {connectors.map((connector: Connector) => (
+        <p key={connector.id}>
+          <button onClick={() =>connect({ connector })}>
+            Connect {connector.id}
           </button>
         </p>
       ))}
@@ -91,6 +94,18 @@ function Leaderboard() {
   const chkID = "checkboxID";
   const [lang, setLang] = useState(true);
 
+  const { connectors } = useInjectedConnectors({
+    // Show these connectors if the user has no connector installed.
+    recommended: [
+      argent(),
+      braavos(),
+    ],
+    // Hide recommended connectors if the user has any connector installed.
+    includeRecommended: "onlyIfNoConnectors",
+    // Randomize the order of the connectors.
+    order: "random"
+  });
+
   return (
     
     <div className="App">
@@ -100,7 +115,10 @@ function Leaderboard() {
       <table align="center" style={{border : '1px solid'}}>
         <td width="30%"></td>
         <td>
-          <StarknetConfig connectors={connectors}>
+          <StarknetConfig 
+                chains={[mainnet, goerli]}
+                provider={publicProvider()}
+                connectors={connectors}>
             <p><font size="+2"><b>LEADERBOARD</b></font></p>
             {lang?<p>Connect wallet to access hall of fame</p>:<p>Conecta tu wallet para acceder al salón de la fama</p>}
             <ConnectWallet />

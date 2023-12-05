@@ -3,12 +3,21 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-import { StarknetConfig } from '@starknet-react/core'
+import { goerli, mainnet } from "@starknet-react/chains";
+import {
+  StarknetConfig,
+  publicProvider,
+  argent,
+  braavos,
+  useInjectedConnectors,
+} from "@starknet-react/core";
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <StarknetConfig>
+    <StarknetConfig       
+      chains={[mainnet, goerli]}
+      provider={publicProvider()}>
     <App />
     </StarknetConfig>
   </React.StrictMode>

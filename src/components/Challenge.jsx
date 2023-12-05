@@ -1,10 +1,17 @@
 import React from 'react';
+import { useState, useMemo } from 'react'
+import { useAccount,useConnect, Connector, useContractWrite,useWaitForTransaction,
+        useContractRead,useContract } from '@starknet-react/core';
+import { goerli, mainnet } from "@starknet-react/chains";
+import {
+  StarknetConfig,
+  publicProvider,
+  argent,
+  braavos,
+  useInjectedConnectors,
+} from "@starknet-react/core";
 
 import '../App.css';
-import { useAccount,useConnectors,useStarknetExecute,useTransactionReceipt,
-        useStarknetCall,useContract } from '@starknet-react/core';
-import { useState } from 'react' 
-
 import mainABI from '../assets/main_abi.json'
 import global from '../global.jsx'
 
@@ -29,143 +36,145 @@ import challengeCode14 from '../assets/challenge14.cairo'
 import challengeCode14Wallet from '../assets/challenge14_wallet.cairo'
 import challengeCode14Coin from '../assets/challenge14_coin.cairo'
 
-import '../App.css';
-
-import { StarknetConfig, InjectedConnector } from '@starknet-react/core'
-
 import { monokaiSublime } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 
 import ToggleSwitch from './ToggleSwitch.js';
 
-const connectors = [
-  new InjectedConnector({ options: { id: 'braavos' }}),
-  new InjectedConnector({ options: { id: 'argentX' }}),
-]
-
 function ChallengeMint({challengeNumber}) {
   const [hash, setHash] = useState(undefined)
-  const { data, loading, error } = useTransactionReceipt({ hash, watch: true })
+  
+  const { address } = useAccount();
 
-  const { execute } = useStarknetExecute({
-    calls: [{
-      contractAddress: global.MAIN_CONTRACT_ADDRESS,
-      entrypoint: 'mint',
-      calldata: [challengeNumber]
-    }]
-  })
+  const { contract } = useContract({
+    abi: mainABI,
+    address: global.MAIN_CONTRACT_ADDRESS,
+  });
+
+  const calls = useMemo(() => {
+    if (!address || !contract) return [];
+    return contract.populateTransaction["mint"](challengeNumber);
+  }, [contract, address]);
+
+  const {
+    writeAsync
+  } = useContractWrite({
+    calls,
+  }); 
 
   const handleClick = () => {
-    execute().then(tx => setHash(tx.transaction_hash))
+    writeAsync().then(tx => setHash(tx.transaction_hash))
   }
 
-  //{!data && <p><button onClick={handleClick}>Great!! claim your NFT 🏆<br />(worth nothing just for fun!!)</button></p>}
+  const { isLoading, isError, error, data } = useWaitForTransaction({hash: hash, watch: true})
 
   return (
     <>
       {!data && <p><button onClick={handleClick}>Great!! claim your NFT 🏆<br />(worth nothing just for fun!!)</button></p>}
-      {data && (data.status!="ACCEPTED_ON_L2") && (data.status!="ACCEPTED_ON_L1") && <p><button onClick={handleClick}>Great!! claim your NFT 🏆<br />(worth nothing just for fun!!)</button></p>}
-      {error && <div>Error: {JSON.stringify(error)}</div>}
-      {data && <div><div>Tx.Hash: {hash}</div> <div>Status: {data.status}  </div></div>}      
+      {data && <div><div>Tx.Hash: {hash}</div> <div>Status: {data.finality_status}  </div></div>}      
+      {data && ((data.finality_status=="ACCEPTED_ON_L2") || (data.finality_status=="ACCEPTED_ON_L1")) && <div> Already Minted <a href={'https://testnet.starkscan.co/nft/0x007d85f33b50c06d050cca1889decca8a20e5e08f3546a7f010325cb06e8963f/'+challengeNumber+'#overview'} target='_blank'>(View)</a></div>}
     </>
   )
 }
 
 function ClaimNFT({challengeNumber}){
-  const { contract } = useContract({
-  address: global.MAIN_CONTRACT_ADDRESS,
-  abi: mainABI
-  })
-  const { address } = useAccount()
-  const { data , loading, error, refresh } = useStarknetCall({
-      contract,
-      method: 'get_mint_status',
-      args:[address,challengeNumber],
-      options: {
-          watch: true
-      }
-  })
 
-  if (loading) return <span>Loading...</span>
-  if (error) return <span>Error: {error}</span>
+  const { address } = useAccount()
+
+  const { data, isError, isLoading, error } = useContractRead({
+    functionName: "get_mint_status",
+    abi:mainABI,
+    address: global.MAIN_CONTRACT_ADDRESS,
+    args:[address,challengeNumber],
+    watch: true,
+  });
+
+  if (isLoading) return <div>Loading ...</div>;
+  if (isError || !data) return <div>Error: {error?.message}</div>;
+
   return(
       <div>
-      {data && !parseInt(data[0].toString())?<div>Already Resolved<br /><ChallengeMint challengeNumber={challengeNumber} /></div>:<div>Already Resolved<br />Already Minted <a href={'https://testnet.starkscan.co/nft/0x007d85f33b50c06d050cca1889decca8a20e5e08f3546a7f010325cb06e8963f/'+challengeNumber+'#overview'} target='_blank'>(View)</a></div>}
+      {data && data._minted == 0?<div>Already Resolved<br /><ChallengeMint challengeNumber={challengeNumber} /></div>:<div>Already Resolved<br />Already Minted <a href={'https://testnet.starkscan.co/nft/0x007d85f33b50c06d050cca1889decca8a20e5e08f3546a7f010325cb06e8963f/'+challengeNumber+'#overview'} target='_blank'>(View)</a></div>}
       </div>
   ) 
 }
 
 function Status({challengeNumber}){
-    const { contract } = useContract({
-    address: global.MAIN_CONTRACT_ADDRESS,
-    abi: mainABI
-    })
     const { address } = useAccount()
-    const { data , loading, error, refresh } = useStarknetCall({
-        contract,
-        method: 'get_challenge_status',
-        args:[address,challengeNumber],
-        options: {
-            watch: true
-        }
-    })
 
-    if (loading) return <span>Loading...</span>
-    if (error) return <span>Error: {error}</span>
+    const { data, isError, isLoading, error } = useContractRead({
+      functionName: "get_challenge_status",
+      abi:mainABI,
+      address: global.MAIN_CONTRACT_ADDRESS,
+      args:[address,challengeNumber],
+      watch: true,
+    });
+
+    if (isLoading) return <div>Loading ...</div>;
+    if (isError || !data) return <div>Error: {error?.message}</div>;
+
     return(
         <div>
-        {data && !parseInt(data[0].toString())?(<Challenge1Deploy challengeNumber={challengeNumber}/>):<ClaimNFT challengeNumber={challengeNumber}/>}
+        {data && data._resolved == 0?(<ChallengeDeploy challengeNumber={challengeNumber}/>):<ClaimNFT challengeNumber={challengeNumber}/>}
         </div>
     ) 
 }
 
 function Points(){
-        const { contract } = useContract({
-        address: global.MAIN_CONTRACT_ADDRESS,
-        abi: mainABI
-        })
         const { address } = useAccount()
-        const { data , loading, error, refresh } = useStarknetCall({
-            contract,
-            method: 'get_points',
-            args:[address],
-            options: {
-                watch: true
-            }
-        })
-    
-        if (loading) return <span>Loading...</span>
-        if (error) return <span>Error: {error}</span>
+
+        const { data, isError, isLoading, error } = useContractRead({
+          abi:mainABI,
+          address: global.MAIN_CONTRACT_ADDRESS,
+          functionName: "get_points",
+          args:[address],
+          watch: true,
+        });
+
+        if (isLoading) return <div>Loading ...</div>;
+        if (isError || !data) return <div>Error: {error?.message}</div>;
+
         return(
             <span>
-            Your Score:{data[0].toString()}
+            Your Score:{data._points.toString()}
             </span>
         ) 
 }
 
-function Challenge1Deploy({challengeNumber}) {
+function ChallengeDeploy({challengeNumber}) {
 
     const [hash, setHash] = useState(undefined)
-    const { data, loading, error } = useTransactionReceipt({ hash, watch: true })
-
-    const { execute } = useStarknetExecute({
-      calls: [{
-        contractAddress: global.MAIN_CONTRACT_ADDRESS,
-        entrypoint: 'deploy_challenge',
-        calldata: [challengeNumber]
-      }]
-    })
   
+    const { address } = useAccount();
+  
+    const { contract } = useContract({
+      abi: mainABI,
+      address: global.MAIN_CONTRACT_ADDRESS,
+    });
+  
+    const calls = useMemo(() => {
+      if (!address || !contract) return [];
+      return contract.populateTransaction["deploy_challenge"](challengeNumber);
+    }, [contract, address]);
+  
+    const {
+      writeAsync
+    } = useContractWrite({
+      calls,
+    }); 
+
     const handleClick = () => {
-      execute().then(tx => setHash(tx.transaction_hash))
+      writeAsync().then(tx => setHash(tx.transaction_hash))
     }
+
+    const { isLoading, isError, error, data } = useWaitForTransaction({hash: hash, watch: true})
 
     let newContractAddress=""
 
     return (
       <>
         <p><button onClick={handleClick}>Begin Challenge</button></p>
-        {data && (data.status=="ACCEPTED_ON_L2"||data.status=="ACCEPTED_ON_L1") &&
+        {data && (data.finality_status=="ACCEPTED_ON_L2"||data.finality_status=="ACCEPTED_ON_L1") &&
                 data.events.forEach(event => {
                   let paddedFrom="0x"+event.from_address.substring(2).padStart(64,'0')
                   let paddedTo="0x"+global.MAIN_CONTRACT_ADDRESS.substring(2).padStart(64,'0')
@@ -174,55 +183,66 @@ function Challenge1Deploy({challengeNumber}) {
                   }
                 })
         }
-        {error && <div>Error: {JSON.stringify(error)}</div>}
-        {data && <div><div>Tx.Hash: {hash}</div> <div>Status: {data.status}  </div></div>}      
+        {isError && <div>Error: {error?.message}</div>}
+        {data && <div><div>Tx.Hash: {hash}</div> <div>Status: {data.finality_status}  </div></div>}      
         {newContractAddress && <div> Challenge contract deployed at address: {newContractAddress} </div>}
-        {data && (data.status=="ACCEPTED_ON_L2"||data.status=="ACCEPTED_ON_L1") && data.events?<div> <Challenge1Check challengeNumber={challengeNumber}/> </div>:<div></div>}
+        {data && (data.finality_status=="ACCEPTED_ON_L2"||data.finality_status=="ACCEPTED_ON_L1")? <div> <ChallengeCheck challengeNumber={challengeNumber}/> </div>:<div></div>}
        </>
     )
 }
 
-function Challenge1Check({challengeNumber}) {
+function ChallengeCheck({challengeNumber}) {
     const [hash, setHash] = useState(undefined)
-    const { data, loading, error } = useTransactionReceipt({ hash, watch: true })
 
-    const { execute } = useStarknetExecute({
-      calls: [{
-        contractAddress: global.MAIN_CONTRACT_ADDRESS,
-        entrypoint: 'test_challenge',
-        calldata: [challengeNumber]
-      }]
-    })
+    const { address } = useAccount();
+  
+    const { contract } = useContract({
+      abi: mainABI,
+      address: global.MAIN_CONTRACT_ADDRESS,
+    });
+  
+    const calls = useMemo(() => {
+      if (!address || !contract) return [];
+      return contract.populateTransaction["test_challenge"](challengeNumber);
+    }, [contract, address]);
+  
+    const {
+      writeAsync
+    } = useContractWrite({
+      calls,
+    }); 
   
     const handleClick = () => {
-      execute().then(tx => setHash(tx.transaction_hash))
+      writeAsync().then(tx => setHash(tx.transaction_hash))
     }
+
+    const { isLoading, isError, error, data } = useWaitForTransaction({hash: hash, watch: true})
 
     return (
       <>
         <p><button onClick={handleClick}>Check Solution</button></p>
-        {error && <div>Error: {JSON.stringify(error)}</div>}
-        {data && <div><div>Tx.Hash: {hash}</div> <div>Status: {data.status}  </div></div>} 
-        {data && (data.status=="ACCEPTED_ON_L2"||data.status=="ACCEPTED_ON_L1") && <ClaimNFT challengeNumber={challengeNumber}/> }    
+        {isError && <div>Error: {error.message}</div>}
+        {data && <div><div>Tx.Hash: {hash}</div> <div>Status: {data.finality_status}  </div></div>} 
+        {data && (data.finality_status=="ACCEPTED_ON_L2"||data.finality_status=="ACCEPTED_ON_L1") && <ClaimNFT challengeNumber={challengeNumber}/> }    
        </>
     )
   }
 
 function ConnectWallet({challengeNumber}) {
-    const { connect, connectors } = useConnectors()
+    const { connect, connectors } = useConnect()
     const { address } = useAccount()
-    const { disconnect } = useConnectors()
+    const { disconnect } = useConnect()
   
     if (!address) 
     return (
       <div>
-        {connectors.map((connector) => (
-          <p key={connector.id()}>
-            <button onClick={() => connect(connector)}>
-              Connect {connector.id()}
-            </button>
-          </p>
-        ))}
+        {connectors.map((connector: Connector) => (
+        <p key={connector.id}>
+          <button onClick={() =>connect({ connector })}>
+            Connect {connector.id}
+          </button>
+        </p>
+      ))}
       </div>
     )
     return (
@@ -436,6 +456,18 @@ export default function Challenge({challengeNumber}) {
     descChallengeEs[14]= "Esta instancia representa a un Buen Samaritano que es muy rico y está dispuesto a donar a todo aquel que se lo solicite. \
     Serás capaz de vaciar todo el saldo de su wallet?";
 
+    const { connectors } = useInjectedConnectors({
+      // Show these connectors if the user has no connector installed.
+      recommended: [
+        argent(),
+        braavos(),
+      ],
+      // Hide recommended connectors if the user has any connector installed.
+      includeRecommended: "onlyIfNoConnectors",
+      // Randomize the order of the connectors.
+      order: "random"
+    });
+
     return (
       <div className="App" class='flex-table row' role='rowgroup'>
         <div class='flex-row-emp' role='cell'></div>
@@ -443,7 +475,10 @@ export default function Challenge({challengeNumber}) {
         <div align='center'>
         <ToggleSwitch id={chkID} checked={lang} optionLabels={textOptions} small={true} onChange={checked => setLang(checked)} />
         </div>
-          <StarknetConfig connectors={connectors}>
+          <StarknetConfig 
+              chains={[mainnet, goerli]}
+              provider={publicProvider()}
+              connectors={connectors}>
             <p><font size="+2"><b>{titleChallenge[challengeNumber]}</b></font></p>
             <div style={{whiteSpace: 'pre-line'}}>
             {lang?descChallengeEn[challengeNumber]:descChallengeEs[challengeNumber]}
