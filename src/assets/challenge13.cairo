@@ -47,7 +47,11 @@ mod ERC20_vulnerable {
             let blockInfo = starknet::get_block_info().unbox();
             let block_timestamp: u64 = blockInfo.block_timestamp;
 
-            self.time_lock.write(block_timestamp + 10_u64 * 365_u64); // block 10 years
+            self
+                .time_lock
+                .write(
+                    block_timestamp + 10_u64 * 365_u64 * 24_u64 * 60_u64 * 60_u64
+                ); // block 10 years
 
             // Set Token
             let tx_info = starknet::get_tx_info().unbox();
