@@ -81,13 +81,12 @@ mod GoodSamaritan {
 
         #[external(v0)]
         fn isComplete(self: @ContractState) -> bool {
-            let this = get_contract_address();
-            let current_balance: u256 = ICOINDispatcher {
+            let wallet_balance: u256 = ICOINDispatcher {
                 contract_address: self.coin_address.read()
             }
-                .get_balance(this);
+                .get_balance(wallet_address);
             let eth_0 = u256 { low: 0_u128, high: 0_u128 };
-            assert(current_balance == eth_0, 'Challenge not resolved');
+            assert(wallet_balance == eth_0, 'Challenge not resolved');
             return (true);
         }
     }
