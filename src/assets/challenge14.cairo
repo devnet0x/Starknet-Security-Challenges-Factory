@@ -39,7 +39,7 @@ mod GoodSamaritan {
             // Deploy wallet
             let mut calldata = ArrayTrait::new();
             let wallet_class_hash: ClassHash = starknet::class_hash_const::<
-                0x37868ff4151924a8458b575fe7cda3de22cf1eadcc6f1cf163ff0ea4f0f85ef
+                0x04218a2a7fded80545e6f27c3ae95273cddf798d6c0a10270efb6da7358e29ae
             >();
 
             let (address0, _) = deploy_syscall(wallet_class_hash, 0, calldata.span(), false)
@@ -48,7 +48,7 @@ mod GoodSamaritan {
 
             // Deploy coin
             let coin_class_hash: ClassHash = starknet::class_hash_const::<
-                0x190099f6ea2a78fd9cfffc61a000939b23918628c28349d403110b4c11ae843
+                0x029914d66319672a08a9406d837cf9597a726051946d7d9462fd7aae28e4210f
             >();
             calldata.append(contract_address_to_felt252(self.wallet_address.read()));
 
@@ -84,7 +84,7 @@ mod GoodSamaritan {
             let wallet_balance: u256 = ICOINDispatcher {
                 contract_address: self.coin_address.read()
             }
-                .get_balance(wallet_address);
+                .get_balance(self.wallet_address.read());
             let eth_0 = u256 { low: 0_u128, high: 0_u128 };
             assert(wallet_balance == eth_0, 'Challenge not resolved');
             return (true);
