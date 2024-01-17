@@ -32,9 +32,9 @@ mod Guess {
         self.is_complete.write(false);
     }
 
-    #[abi(embed_v0)]
     #[generate_trait]
     impl Guess of GuessTrait {
+        #[external(v0)]
         fn guess(ref self: ContractState, guessed_number: u256) {
             let eth_contract = IERC20Dispatcher {
                 contract_address: L2_ETHER_ADDRESS.try_into().unwrap()
@@ -52,6 +52,7 @@ mod Guess {
             self.is_complete.write(true);
         }
 
+        #[external(v0)]
         fn isComplete(self: @ContractState) {
             let is_completed = self.is_complete.read();
             assert!(is_completed, "challenge not solved");
