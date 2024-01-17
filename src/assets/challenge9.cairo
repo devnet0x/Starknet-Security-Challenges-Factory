@@ -56,7 +56,11 @@ mod Fallout {
             let eth_contract = IERC20Dispatcher {
                 contract_address: L2_ETHER_ADDRESS.try_into().unwrap()
             };
-            eth_contract.transfer_from(get_caller_address(), get_contract_address(), amount);
+
+            let success: bool = eth_contract
+                .transfer_from(get_caller_address(), get_contract_address(), amount);
+            assert!(success, "transfer failed");
+
             let current_allocation: u256 = self.get_allocations(get_caller_address());
             let new_allocation: u256 = current_allocation + amount;
             self.allocations.write(get_caller_address(), new_allocation);
@@ -66,13 +70,15 @@ mod Fallout {
         fn send_allocation(ref self: ContractState, allocator: ContractAddress) {
             let current_allocation: u256 = self.get_allocations(allocator);
             assert!(current_allocation != 0, "Allocations required");
+
             let eth_contract = IERC20Dispatcher {
                 contract_address: L2_ETHER_ADDRESS.try_into().unwrap()
             };
-            eth_contract
-                .transfer(
-                    L2_ETHER_ADDRESS.try_into().unwrap(), current_allocation
-                ); // check bool success?
+
+            let success: bool = eth_contract
+                .transfer(L2_ETHER_ADDRESS.try_into().unwrap(), current_allocation);
+            assert!(success, "transfer failed");
+
             self.allocations.write(allocator, 0);
         }
 
@@ -85,11 +91,12 @@ mod Fallout {
             let eth_contract = IERC20Dispatcher {
                 contract_address: L2_ETHER_ADDRESS.try_into().unwrap()
             };
-
             let total_balance = eth_contract.balance_of(get_contract_address());
-            eth_contract.transfer(get_caller_address(), total_balance);
+
+            let success: bool = eth_contract.transfer(get_caller_address(), total_balance);
+            assert!(success, "transfer failed");
+
             true
         }
     }
 }
-
