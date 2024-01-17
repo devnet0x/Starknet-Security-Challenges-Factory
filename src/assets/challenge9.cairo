@@ -75,8 +75,7 @@ mod Fallout {
                 contract_address: L2_ETHER_ADDRESS.try_into().unwrap()
             };
 
-            let success: bool = eth_contract
-                .transfer(L2_ETHER_ADDRESS.try_into().unwrap(), current_allocation);
+            let success: bool = eth_contract.transfer(allocator, current_allocation);
             assert!(success, "transfer failed");
 
             self.allocations.write(allocator, 0);
