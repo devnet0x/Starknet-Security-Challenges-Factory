@@ -1,121 +1,95 @@
-%lang starknet
-from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.bool import FALSE, TRUE
-from starkware.starknet.common.syscalls import get_contract_address,get_caller_address,get_tx_info
-from starkware.cairo.common.uint256 import (Uint256,uint256_add,uint256_le)
-from openzeppelin.token.erc20.IERC20 import IERC20
+use starknet::ContractAddress;
 
-// ######## Constants
-
-const L2_ETHER_ADDRESS=0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7;
-
-// ######## Storage vars
-
-@storage_var
-func owner() -> (value: felt) {
+#[starknet::interface]
+trait IERC20<TState> {
+    fn balance_of(self: @TState, account: ContractAddress) -> u256;
+    fn transfer(ref self: TState, recipient: ContractAddress, amount: u256) -> bool;
+    fn transfer_from(
+        ref self: TState, sender: ContractAddress, recipient: ContractAddress, amount: u256
+    ) -> bool;
 }
 
-@storage_var
-func allocations(address : felt) -> (value: Uint256) {
-}
+#[starknet::contract]
+mod Fallout {
+    use starknet::ContractAddress;
+    use starknet::get_caller_address;
+    use starknet::get_contract_address;
+    use starknet::get_tx_info;
+    use super::{IERC20Dispatcher, IERC20DispatcherTrait};
 
-// ######## Getters
-func msg_sender{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> felt {
-        alloc_locals;
-        let (res)=get_caller_address();
-        return res;
-}
+    // ######## Constants
 
-func this{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> felt {
-        alloc_locals;
-        let (res)=get_contract_address();
-        return res;
-}
+    const L2_ETHER_ADDRESS: felt252 =
+        0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7;
 
-func get_owner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> felt {
-        alloc_locals;
-        let (res)=owner.read();
-        return res;
-}
-
-
-func get_allocations{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    address : felt) -> Uint256 {
-        alloc_locals;
-        let (res)=allocations.read(address);
-        return res;
-}
-
-
-// ######## Constructor
-@external
-func constructor{
-    syscall_ptr: felt*,
-    pedersen_ptr: HashBuiltin*,
-    range_check_ptr,
-}(amount : Uint256)
-{
-    owner.write(msg_sender());
-    allocations.write(msg_sender(),amount);    
-    return ();
-}
-
-// ######## Externals
-
-@external
-func allocate{
-    syscall_ptr: felt*,
-    pedersen_ptr: HashBuiltin*,
-    range_check_ptr,
-}(amount : Uint256){
-    alloc_locals;
-    IERC20.transferFrom(L2_ETHER_ADDRESS,msg_sender(),this(),amount);
-    let curr_amt:Uint256 = get_allocations(msg_sender());
-    let new_allocations:Uint256 = uint256_add(curr_amt,amount);
-    allocations.write(msg_sender(),new_allocations);
-    return();
-}
-
-@external
-func sendAllocation{
-    syscall_ptr: felt*,
-    pedersen_ptr: HashBuiltin*,
-    range_check_ptr,
-}(allocator : felt) {
-    alloc_locals;
-    let curr_allocations:Uint256 = get_allocations(allocator);
-    let (is_le_zero)=uint256_le(curr_allocations,Uint256(0,0));
-    with_attr error_message("Allocations required."){
-        assert is_le_zero=FALSE;
+    #[storage]
+    struct Storage {
+        owner: ContractAddress,
+        allocations: LegacyMap::<ContractAddress, u256>
     }
-    IERC20.transfer(L2_ETHER_ADDRESS,allocator,curr_allocations);
-    allocations.write(allocator,Uint256(0,0));
-    return();
-  }
 
-@external
-func isComplete{
-    syscall_ptr: felt*,
-    pedersen_ptr: HashBuiltin*,
-    range_check_ptr,
-}()->(output : felt) {
-    alloc_locals;
-    let (tx_info) = get_tx_info();
-    with_attr error_message("Caller is not the owner."){
-        assert tx_info.account_contract_address=get_owner();
+    #[abi(per_item)]
+    #[generate_trait]
+    impl Fallout of FalloutTrait {
+        // ######## Constructor
+        #[external(v0)]
+        fn constructor(ref self: ContractState, amount: u256) {
+            let sender: ContractAddress = get_caller_address();
+            self.owner.write(sender);
+            self.allocations.write(sender, amount);
+        }
+
+        // ######## Getters
+        #[external(v0)]
+        fn get_owner(self: @ContractState) -> ContractAddress {
+            self.owner.read()
+        }
+
+        #[external(v0)]
+        fn get_allocations(self: @ContractState, allocator: ContractAddress) -> u256 {
+            self.allocations.read(allocator)
+        }
+
+        // ######## External functions
+        #[external(v0)]
+        fn allocate(ref self: ContractState, amount: u256) {
+            let eth_contract = IERC20Dispatcher {
+                contract_address: L2_ETHER_ADDRESS.try_into().unwrap()
+            };
+            eth_contract.transfer_from(get_caller_address(), get_contract_address(), amount);
+            let current_allocation: u256 = self.get_allocations(get_caller_address());
+            let new_allocation: u256 = current_allocation + amount;
+            self.allocations.write(get_caller_address(), new_allocation);
+        }
+
+        #[external(v0)]
+        fn send_allocation(ref self: ContractState, allocator: ContractAddress) {
+            let current_allocation: u256 = self.get_allocations(allocator);
+            assert!(current_allocation != 0, "Allocations required");
+            let eth_contract = IERC20Dispatcher {
+                contract_address: L2_ETHER_ADDRESS.try_into().unwrap()
+            };
+            eth_contract
+                .transfer(
+                    L2_ETHER_ADDRESS.try_into().unwrap(), current_allocation
+                ); // check bool success?
+            self.allocations.write(allocator, 0);
+        }
+
+        #[external(v0)]
+        fn isComplete(ref self: ContractState) -> bool {
+            let tx_info = get_tx_info().unbox();
+            let tx_origin = tx_info.account_contract_address;
+            assert!(tx_origin == self.owner.read(), "Caller is not the owner");
+
+            let eth_contract = IERC20Dispatcher {
+                contract_address: L2_ETHER_ADDRESS.try_into().unwrap()
+            };
+
+            let total_balance = eth_contract.balance_of(get_contract_address());
+            eth_contract.transfer(get_caller_address(), total_balance);
+            true
+        }
     }
-    let (total_balance)=IERC20.balanceOf(L2_ETHER_ADDRESS,this());
-    IERC20.transfer(L2_ETHER_ADDRESS,msg_sender(),total_balance);
-    return (output=TRUE,);
-  }
-
-@view
-func allocatorBalance{
-    syscall_ptr: felt*,
-    pedersen_ptr: HashBuiltin*,
-    range_check_ptr,
-}(allocator : felt) -> (output:Uint256) {
-    alloc_locals;
-    let (current_allocations:Uint256)=allocations.read(allocator);
-    return (output=current_allocations,);
 }
+
