@@ -17,7 +17,6 @@ mod Nickname {
         IMainDispatcherTrait,
         IMainDispatcher
     };
-    use box::BoxTrait;
     use starknet::contract_address::contract_address_to_felt252;
 
    #[storage]

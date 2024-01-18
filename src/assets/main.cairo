@@ -19,15 +19,13 @@ mod SecurityChallenge {
     use starknet::{
         ContractAddress, get_contract_address, get_caller_address
     };
-    use array::{ArrayTrait, SpanTrait};
     use starknet::class_hash::Felt252TryIntoClassHash;
-    use traits::TryInto;
     use core::traits::Into;
-    use option::OptionTrait;
     use super::{ITestContractDispatcher, ITestContractDispatcherTrait};
     use super::{INFTDispatcher, INFTDispatcherTrait};
     use starknet::syscalls::replace_class_syscall;
     use starknet::contract_address_try_from_felt252;
+    use starknet::get_tx_info;
 
 
     // Struct to storage players challenge status.
@@ -90,19 +88,15 @@ mod SecurityChallenge {
         res: felt252,
     }
 
+    #[constructor]
+    fn constructor(ref self: ContractState) {
+        //Set proxy admin
+        self.Proxy_admin.write(get_tx_info().unbox().account_contract_address.into());
+    }
+
     #[external(v0)]
     #[generate_trait]
     impl SecurityChallengeImpl of ISecurityChallenge {
-        // fn isComplete(self: @ContractState) -> bool {
-        //     let output = self.is_complete.read();
-        //     return(output);
-        // }
-
-        // fn call_me(ref self: ContractState) {
-        //     self.is_complete.write(true);
-        //     return();
-        // }
-
         // ######## External functions
 
         // Function to deploy challenges to players

@@ -10,16 +10,14 @@ trait IERC20<TContractState> {
 
 #[starknet::contract]
 mod StarknetChallengeNft {
-    use starknet::{
+    use core::option::OptionTrait;
+use core::traits::TryInto;
+use starknet::{
         ContractAddress, get_contract_address, get_caller_address, contract_address_const,
-        contract_address_to_felt252, contract_address_try_from_felt252
+        contract_address_to_felt252, contract_address_try_from_felt252,get_tx_info
     };
     use starknet::syscalls::replace_class_syscall;
     
-    use zeroable::Zeroable;
-    use traits::TryInto;
-    use option::OptionTrait;
-    use array::ArrayTrait;
     use core::traits::Into;
 
     #[storage]
@@ -86,7 +84,7 @@ mod StarknetChallengeNft {
         let main_address: ContractAddress = starknet::contract_address_const::<0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd>();
         self.owner.write(contract_address_to_felt252(main_address));
         // Deployer is the admin
-        self.Proxy_admin.write(contract_address_to_felt252(get_contract_address()));
+        self.Proxy_admin.write(get_tx_info().unbox().account_contract_address.into());
     }
 
     #[external(v0)]
@@ -172,13 +170,13 @@ mod StarknetChallengeNft {
         fn ownerOf(self: @ContractState, token_id: u256) -> ContractAddress {
             // Do nothing
             assert(0==1,'Function not implemented.');
-            Zeroable::zero()
+            0.try_into().unwrap()
         }
 
         fn getApproved(self: @ContractState, token_id: u256) -> ContractAddress {
             // Do nothing
             assert(0==1,'Function not implemented.');
-            Zeroable::zero()
+            0.try_into().unwrap()
         }
 
         fn isApprovedForAll(
@@ -230,7 +228,7 @@ mod StarknetChallengeNft {
 
             self.ERC1155_balances.write((tokenId, to), 1.into());
 
-            self.emit(Transfer { from: Zeroable::zero(), to: contract_address_try_from_felt252(to).unwrap(), token_id: tokenId });
+            self.emit(Transfer { from: 0.try_into().unwrap(), to: contract_address_try_from_felt252(to).unwrap(), token_id: tokenId });
         }
 
         // Proxy function

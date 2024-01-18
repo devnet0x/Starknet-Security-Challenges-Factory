@@ -19,7 +19,7 @@ mod Vault {
         let param1: felt252 = tx_info.nonce;
         let param2: felt252 = contract_address_to_felt252(tx_info.account_contract_address);
 
-        let _password: felt252 = pedersen::pedersen(param1, param2);
+        let _password: felt252 = core::pedersen::pedersen(param1, param2);
         self.locked.write(true);
         self.password.write(_password);
     }

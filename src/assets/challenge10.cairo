@@ -7,13 +7,10 @@ trait ICoinFlipTrait<TContractState> {
 
 #[starknet::contract]
 mod CoinFlip {
-    use traits::Into;
-    use traits::TryInto;
     use starknet::ContractAddress;
     use starknet::get_block_info;
     use starknet::get_caller_address;
     use starknet::info::get_tx_info;
-    use box::BoxTrait;
 
     const HEAD: felt252 = 1;
     const TAIL: felt252 = 0;
