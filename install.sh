@@ -4,9 +4,9 @@
 #* Environment *
 #***************
 
-export STARKNET_PRIVATE_KEY="0x1800000000300000180000000000030000000000003006001800006600"
-STARKNET_ACCOUNT="../../katana-acct.json"
-STARKNET_RPC="https://localhost:5050"
+export STARKNET_PRIVATE_KEY="0x80a1c6bac0c24aebb2821704255ab786"
+STARKNET_ACCOUNT="~/devnet-ssc-acct.json"
+STARKNET_RPC="http://localhost:5050"
 
 #****************************************
 #* Cairo challenge filenames and points *
@@ -180,6 +180,18 @@ do
         echo -e "\033[1;32mAuxiliary challenge $challenge_name not registered...\033[0m"
     fi
 done
+
+#*****************************
+#* Optional cairo0 challenges *
+#*****************************
+read -p "Do you want to compile cairo0 challenges? (y/n) " -n 1 -r
+echo
+if [[ ! $REPLY =~ ^[Yy]$ ]]
+then
+    rm install.tmp
+    echo -e "\033[1;32mDone.\033[0m"
+    exit
+fi
 
 #*****************************
 #* COMPILE cairo0 challenges *

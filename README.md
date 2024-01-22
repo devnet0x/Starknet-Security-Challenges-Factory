@@ -13,117 +13,92 @@ Here you will find:
 * [How it works in background.](#how-it-works)
 
 # REQUIREMENTS
-- python3.9
-
+- scarb v2.4.3
+```
+curl --proto '=https' --tlsv1.2 -sSf https://docs.swmansion.com/scarb/install.sh | sh
+```
+- starkli 0.2.4
+```
+curl https://get.starkli.sh | sh
+restart your shell
+starkliup
+```
 - rust 
 ```
 sudo curl --proto '=https' -tslv1.2 -sSf https://sh.rustup.rs | sh
 ```
-- cairo v2.3.1
+- starknet-devnet-rs commited jan-22 or newer
 ```
-git clone https://github.com/starkware-libs/cairo/
-cd cairo
-git checkout tags/v2.3.1
-cargo build --all --release
+git clone https://github.com/0xSpaceShard/starknet-devnet-rs
 ```
-- cairo_lang v0.12
-```
-pip3 install cairo-lang
-```
-- starknet-devnet 0.5.5+
-```
-sudo apt install -y libgmp3-dev
-pip install starknet-devnet
-```
-- starknet-py 0.18.3+
-```
-pip install starknet-py==0.18.3
-```
-- node v19.6.1+
+- node v19.6.1
 ```
 sudo apt-get update
 curl -fsSL https://deb.nodesource.com/setup_19.x | sudo -E bash -
 sudo apt-get install -y nodejs
 ```
+- python3.9 (optional only for cairo0 challenges support)
 
-# HOW TO INSTALL
-1) Start a local devnet with seed 0
+- cairo_lang v0.13 (optional only for cairo0 challenges support)
 ```
-starknet-devnet --seed 0 --cairo-compiler-manifest PATH_TO_CAIRO_2.3.1/Cargo.toml
+pip3 install cairo-lang
 ```
-2) Clone repository
+# HOW TO INSTALL LOCALLY
+1) Start a local starknet devnet in rust instance
+```
+cd starknet-devnet-rs
+cargo run
+```
+2) Create your devnet account file:
+```
+starkli account fetch --output ~/devnet-ssc-acct.json 0x7f8460cdc3b7b45b6d9d17c44b5e56deab0df4ab5f313930e02907d58f2a6ba --rpc http://localhost:5050
+```
+3) Clone repository
 ```
 git clone https://github.com/devnet0x/Starknet-Security-Challenges-Factory
 ```
-3) Deploy contracts to local devnet
+4) Deploy contracts to local devnet
 ```
 cd Starknet-Security-Challenges-Factory
-Edit config.py and set CAIRO_MANIFEST_PATH with your PATH_TO_CAIRO_2.3.1 toml path
-python setup.py
+./install.sh
 ```
-4) Install and start web3 platform
+5) Install and run web3 platform
 ```
 npm install
 npm start run
 ```
-5) Connect your Argentx or Braavos wallet to devnet and play at:
+6) Connect your Argentx or Braavos wallet to devnet and play at:
 ```
 http://localhost:3000
 ```
 ![](./src/assets/screenshot.png)
 
 # HOW TO ADD A CHALLENGE
-1) Compile your Cairo2 challenge with a isComplete function returning true when challenge is completed.
+1) Compile your Cairo challenge with a isComplete function returning true when challenge is completed.
+```
+scarb build
+```
 
-2) Edit $HOME/.starknet_accounts/starknet_open_zeppelin_accounts.json and add devnet account to "alpha-goerli" structure:
+2) Declare your Cairo challenge in localhost devnet.
 ```
-    "admin": {
-        "private_key": "0xe3e70682c2094cac629f6fbed82c07cd",
-        "public_key": "0x7e52885445756b313ea16849145363ccb73fb4ab0440dbac333cf9d13de82b9",
-        "salt": "0x0",
-        "address": "0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a",
-        "deployed": true
-    }
+starkli declare --watch --rpc http://localhost:5050 --account ~/devnet-ssc-acct.json target/dev/<json contract file>
 ```
-3) Declare your Cairo2 challenge in devnet.
+3) Add your challenge to main contract.
 ```
-export STARKNET_NETWORK=alpha-goerli
-export STARKNET_WALLET=starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount
+starkli invoke --watch --rpc http://localhost:5050 --account ~/devnet-ssc-acct.json <devnet_main_address> updateChallenge <challenge_number> <challenge_class_hash> <challenge_points>
 
-starknet --gateway_url http://127.0.0.1:5050 --feeder_gateway_url http://127.0.0.1:5050 --account admin declare --contract <challenge_sierra_file>
+Example:
+starkli invoke --watch --rpc http://localhost:5050 --account ~/devnet-ssc-acct.json 0x02e82451d558cfeca232b490094daef0fe5148e5bb4a412e2f94aaa45c3483ba updateChallenge 8 1500 0x0649f54b81c3f5a6385f57b25db5131cece97fd92d21aa0af196eeb77b5d4c9c
 ```
-4) Add your challenge to main contract.
-```
-starknet --gateway_url http://127.0.0.1:5050 --feeder_gateway_url http://127.0.0.1:5050 --account admin invoke --max_fee 1000000000000000 --address <devnet_main_address> --function updateChallenge --inputs <challenge_number> <challenge_class_hash> <challenge_points>
-
-
-For example:
-export STARKNET_NETWORK=alpha-goerli
-export STARKNET_WALLET=starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount
-starknet --gateway_url http://127.0.0.1:5050 --feeder_gateway_url http://127.0.0.1:5050 --account admin invoke --max_fee 1000000000000000 --address 0x34c07e42599cd772efa07a7ffb8ea98bce9497cd01a0fa48c601f0000422e10 --function updateChallenge --inputs 21 0x1c0aaac8308084dc8fbeaea90c0c3e69d18d63f1f51062d2b8782ba10423e7d 200
-```
-5) Check with:
-```
-starknet --gateway_url http://127.0.0.1:5050 --feeder_gateway_url http://127.0.0.1:5050 tx_status --hash <your_previous_tx_hash>
-
-{
-    "block_hash": "0x1ac55d27761ec8f377b216cedbac57409e82efc631112aaad2e9bc722b182af",
-    "tx_status": "ACCEPTED_ON_L2"
-}
-```
-6) Add your new .cairo file to src/assets
-7) Add your new nft image file to src/assets/nft
-8) Add your new nft json file to src/assets/nft
-9) Edit src/components/Challenge.jsx and add your challenge and descriptions.
-10) Edit src/layout/components/menu_config.js and add your challenge to the menu.
-11) Edit src/App.js and add challenge to page route.
-12) Edit config.py and add your challenge in CHALLENGE_CONTRACTS.
-13) Test your challenge in http://localhost:3000
-14) Edit global.jsx and restore testnet main address to:
-```
-global.MAIN_CONTRACT_ADDRESS='0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd';
-```
-14) Send your PR to github.
+5) Copy your new .cairo file into src/assets
+6) Add your new nft image file to src/assets/nft
+7) Add your new nft json file to src/assets/nft
+8) Edit src/components/Challenge.jsx and add your challenge and descriptions.
+9) Edit src/layout/components/menu_config.js and add your challenge to the menu.
+10) Edit src/App.js and add challenge to page route.
+11) Edit install.py and add your challenge in cairo1_challenge array.
+12) Test your challenge in http://localhost:3000
+13) Send your PR to github.
 
 # HOW IT WORKS
 ![](./src/assets/design.png)
@@ -151,18 +126,15 @@ git clone https://github.com/devnet0x/Starknet-Security-Challenges-Factory
 ```
 3) Compile challenge.
 ```
-cd cairo
-cargo run --bin starknet-compile ./src/assets/challenge.cairo challenge.sierra
+scarb build
 ```
 4) Declare challenge.
 ```
-export STARKNET_NETWORK=alpha-goerli
-export STARKNET_WALLET=starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount //utiliza el DEFAULT
-starknet --account __default__ declare --contract challenge.sierra
+starkli declare --watch --rpc https://starknet-sepolia.public.blastapi.io/rpc/v0_6 --account ~/sepolia-ssc-acct.json target/dev/<json contract file>
 ```
-5) On starkscan/voyager invoke updateChallenge function to add challenge.
+5) Register new challenge on main contract.
 ```
-main contract:0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd
+starkli invoke --watch --rpc https://starknet-sepolia.public.blastapi.io/rpc/v0_6 --account ~/sepolia-ssc-acct.json <sepolia_main_address> updateChallenge <challenge_number> <challenge_class_hash> <challenge_points>
 ```
 6) Upload to test environment.
 ```
@@ -180,12 +152,12 @@ vercel --prod
 # HOW TO UPGRADE CORE CONTRACTS (ONLY PRODUCTION ADMINS)
 
 1) Declare new main.cairo or nft.cairo smart contract.
-2) On starkscan/voyager read getImplementationHash in case of rollback.
+2) Invoke upgrade
 ```
+starkli invoke --watch --rpc https://starknet-sepolia.public.blastapi.io/rpc/v0_6 --account ~/sepolia-ssc-acct.json <sepolia_main__or_nft_address> upgrade <new_class_hash>
+
 main contract:0x0667b3f486c25a9afc38626706fb83eabf0f8a6c8a9b7393111f63e51a6dd5dd
 nft contract :0x007d85f33b50c06d050cca1889decca8a20e5e08f3546a7f010325cb06e8963f
-```
-3) On starkscan/voyager invoke upgrade function with new core implementation hash.
-```
+
 WARNING!!! IF CLASS_HASH DOESN'T EXIST WE WILL LOST DATA AND UPGRADE FUNCTIONS.
 ```
