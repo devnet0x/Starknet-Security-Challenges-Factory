@@ -31,7 +31,7 @@ class Sidebar extends React.Component {
             <Link to="#" className="menu-bars">
               <FaIcons.FaBars onClick={this.showSidebar} />
             </Link>
-            <font color="#FFFFFF"><font size='5'><b>Security Challenges Factory for Starknet.</b></font>
+            <font color="#FFFFFF"><font size='5'><b>Security Challenges Factory for Starknet (Sepolia).</b></font>
             <font size='1'><a href='https://twitter.com/devnet0x/'>by devnet0x</a></font></font>
           </div>
           
