@@ -2,7 +2,7 @@ import React from 'react';
 import { useState, useMemo } from 'react'
 import { useAccount,useConnect, Connector, useContractWrite,useWaitForTransaction,
         useContractRead,useContract } from '@starknet-react/core';
-import { goerli, mainnet } from "@starknet-react/chains";
+import { goerli, sepolia, mainnet } from "@starknet-react/chains";
 import {
   StarknetConfig,
   publicProvider,
@@ -94,7 +94,7 @@ function ClaimNFT({challengeNumber}){
 
   return(
       <div>
-      {data && data._minted == 0?<div>Already Resolved<br /><ChallengeMint challengeNumber={challengeNumber} /></div>:<div>Already Resolved<br />Already Minted <a href={'https://testnet.starkscan.co/nft/0x007d85f33b50c06d050cca1889decca8a20e5e08f3546a7f010325cb06e8963f/'+challengeNumber+'#overview'} target='_blank'>(View)</a></div>}
+      {data && data._minted == 0?<div>Already Resolved<br /><ChallengeMint challengeNumber={challengeNumber} /></div>:<div>Already Resolved<br />Already Minted <a href={'https://sepolia.starkscan.co/nft/0x0342f8e98c92eacebaf89bd59cea94f0f9a671f88e2984d12ffe4638d991f057/'+challengeNumber+'#overview'} target='_blank'>(View)</a></div>}
       </div>
   ) 
 }
@@ -236,7 +236,7 @@ function ConnectWallet({challengeNumber}) {
     if (!address) 
     return (
       <div>
-        {connectors.map((connector: Connector) => (
+        {connectors.map((connector) => (
         <p key={connector.id}>
           <button onClick={() =>connect({ connector })}>
             Connect {connector.id}
@@ -333,12 +333,12 @@ export default function Challenge({challengeNumber}) {
     const descChallengeEs = Array(100);
     
     titleChallenge[1]="DEPLOY A CONTRACT";
-    descChallengeEn[1]= "Just connect your wallet in starknet goerli testnet and click the \
+    descChallengeEn[1]= "Just connect your wallet in starknet SEPOLIA testnet and click the \
     \"Begin Challenge\" button on the bottom to deploy the challenge contract.\n\n \
     You don’t need to do anything with the contract once it’s deployed. \n\n \
     Just press “Check Solution” button to verify that you deployed successfully.\n\n \
     Here’s the code for this challenge:";
-    descChallengeEs[1]="Solo conecta tu wallet en Starknet Goerli Testnet y haz click en el boton \
+    descChallengeEs[1]="Solo conecta tu wallet en Starknet SEPOLIA Testnet y haz click en el boton \
     \"Begin Challenge\" al fondo para desplegar el contrato inteligente.\n\n \
     No necesitas hacer nada con el contrato una vez que se implementa. \n\n \
     Simplemente presiona el botón \"Check Solution\" para verificar que se implementó correctamente.\n\n \
@@ -358,12 +358,12 @@ export default function Challenge({challengeNumber}) {
     descChallengeEn[3]= "It’s time to set your nickname! This nickname is how you’ll show up on the leaderboard.\n\n \
     The game smart contract keeps track of a nickname for every player.\n\n \
     To complete this challenge, set your nickname to a non-empty string. The smart contract  \
-    is running on the Goerli test network at the address "+global.MAIN_CONTRACT_ADDRESS.toString()+".\n\n \
+    is running on the SEPOLIA test network at the address "+global.MAIN_CONTRACT_ADDRESS.toString()+".\n\n \
     Here’s the code for this challenge:";
     descChallengeEs[3]= "¡Es hora de establecer tu nickname!Es la forma en que aparecerás en la tabla de clasificación.\n\n \
     El contrato inteligente del juego tiene un registro de nicknames para cada jugador.\n\n \
     Para completar este reto, establezca su apodo en una cadena no vacía. El contrato inteligente \
-    se está ejecutando en Starknet Goerli Testnet en la dirección "+global.MAIN_CONTRACT_ADDRESS.toString()+".\n\n \
+    se está ejecutando en Starknet SEPOLIA Testnet en la dirección "+global.MAIN_CONTRACT_ADDRESS.toString()+".\n\n \
     Aquí está el código para este reto:";
 
     titleChallenge[4]="GUESS A NUMBER";
@@ -476,7 +476,7 @@ export default function Challenge({challengeNumber}) {
         <ToggleSwitch id={chkID} checked={lang} optionLabels={textOptions} small={true} onChange={checked => setLang(checked)} />
         </div>
           <StarknetConfig 
-              chains={[mainnet, goerli]}
+              chains={[mainnet, goerli, sepolia]}
               provider={publicProvider()}
               connectors={connectors}>
             <p><font size="+2"><b>{titleChallenge[challengeNumber]}</b></font></p>

@@ -111,7 +111,7 @@ echo ${NFT_CONTRACT_ADDRESS}
 #*********************
 echo -e "\033[1;32mUpdating global.jsx...\033[0m"
 echo "const global = {}" > ./src/global.jsx
-echo "export const global.MAIN_CONTRACT_ADDRESS = \"${MAIN_CONTRACT_ADDRESS}\";" >> ./src/global.jsx
+echo "global.MAIN_CONTRACT_ADDRESS = \"${MAIN_CONTRACT_ADDRESS}\";" >> ./src/global.jsx
 echo "export default global" >> ./src/global.jsx
 
 #***************************
@@ -168,7 +168,7 @@ do
     then
         echo -e "\033[1;32mRegistering challenge $challenge_name...\033[0m"
         CHALLENGE_NUMBER=$(echo $challenge_name | grep -o -E '[0-9]+' | head -1) 
-        INVOKE_STATEMENT="starkli invoke --watch --rpc ${STARKNET_RPC} --account ${STARKNET_ACCOUNT} ${MAIN_CONTRACT_ADDRESS} updateChallenge ${CHALLENGE_NUMBER} ${POINTS} ${CHALLENGE_CLASS_HASH} > install.tmp"
+        INVOKE_STATEMENT="starkli invoke --watch --rpc ${STARKNET_RPC} --account ${STARKNET_ACCOUNT} ${MAIN_CONTRACT_ADDRESS} updateChallenge ${CHALLENGE_NUMBER} ${CHALLENGE_CLASS_HASH} ${POINTS} > install.tmp"
         echo ${INVOKE_STATEMENT}
         eval ${INVOKE_STATEMENT}
         if [ $? -ne 0 ]
@@ -184,7 +184,7 @@ done
 #*****************************
 #* Optional cairo0 challenges *
 #*****************************
-read -p "Do you want to compile cairo0 challenges? (y/n) " -n 1 -r
+read -p "Do you want to install cairo0 challenges? (require access to starknet-compile-deprecated) (y/n) " -n 1 -r
 echo
 if [[ ! $REPLY =~ ^[Yy]$ ]]
 then
