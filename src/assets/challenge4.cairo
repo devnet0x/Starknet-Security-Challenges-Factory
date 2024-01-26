@@ -1,69 +1,61 @@
-%lang starknet
-from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.bool import FALSE, TRUE
-from starkware.starknet.common.syscalls import get_contract_address,get_caller_address
-from starkware.cairo.common.uint256 import (Uint256,uint256_eq)
-from starkware.cairo.common.math import assert_not_equal
+use starknet::{ContractAddress};
 
-@contract_interface
-namespace IERC20 {
-    func balanceOf(account: felt) -> (balance: Uint256) {
+#[starknet::interface]
+trait IERC20<TContractState> {
+    fn balance_of(self: @TContractState, account: ContractAddress) -> u256;
+    fn transfer(ref self: TContractState, recipient: ContractAddress, amount: u256);
+}
+
+#[starknet::interface]   
+trait IGuessNumber<TContractState> {
+   fn isComplete(self: @TContractState) -> bool; 
+   fn guess(ref self: TContractState,n:felt252); 
+   
+}
+
+#[starknet::contract]
+mod GuessNumber {
+   use super::{IERC20Dispatcher, IERC20DispatcherTrait};
+   use starknet::{get_contract_address,get_caller_address,contract_address_const};
+   #[storage]
+   struct Storage {
+        is_complete:bool, 
+        answer:felt252,
+   }
+
+   #[constructor]  
+    fn constructor(ref self: ContractState)
+     {
+        self.answer.write(42);
+        self.is_complete.write(false);
     }
-    func transfer(recipient: felt, amount: Uint256) -> (success: felt) {
-    }
+   
+   #[external(v0)] 
+   impl GuessNumberImpl of super::IGuessNumber<ContractState> {    
+      fn isComplete(self: @ContractState) -> bool {
+        let output=self.is_complete.read();
+        return (output);
+      }
+      
+      fn guess(ref self:ContractState, n:felt252){
+        let l2_token_address=contract_address_const::<0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7>();
+
+        let contract_address=get_contract_address();
+        let balance=IERC20Dispatcher{contract_address:l2_token_address}.balance_of(account:contract_address);
+        let amount: u256 = 10000000000000000;
+        
+        assert(balance==amount,'deposit required');
+
+        let number=self.answer.read();
+        assert (n==number,'Incorrect guessed number');
+        
+        let sender=get_caller_address();
+        IERC20Dispatcher{contract_address:l2_token_address}.transfer(recipient:sender,amount:amount);
+        self.is_complete.write(true);
+      }
+   }
 }
 
-@storage_var
-func is_complete() -> (value: felt) {
-}
 
-@storage_var
-func answer() -> (value: felt) {
-}
 
-// ######## Constructor
 
-@constructor
-func constructor{
-    syscall_ptr: felt*,
-    pedersen_ptr: HashBuiltin*,
-    range_check_ptr,
-}() {
-    alloc_locals;
-    answer.write(value=42);
-    is_complete.write(FALSE);
-    return ();
-}
-
-@view
-func isComplete{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (output:felt) {
-    alloc_locals;
-    let (output)=is_complete.read();
-    return (output=output);
-}
-
-@external
-func guess{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    n:felt) {
-    alloc_locals;
-    let l2_token_address=0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7;
-
-    let (contract_address)=get_contract_address();
-    let (balance)=IERC20.balanceOf(contract_address=l2_token_address,account=contract_address); 
-
-    let amount: Uint256 = Uint256(10000000000000000, 0);
-    let (is_equal) = uint256_eq(balance, amount);
-    with_attr error_message("Deposit required.") {
-        assert is_equal = 1;
-    }
-
-    let (number)=answer.read();
-    with_attr error_message("Incorrect guessed number.") {
-        assert n=number;
-    } 
-    
-    let (sender)=get_caller_address();
-    IERC20.transfer(contract_address=l2_token_address,recipient=sender,amount=amount);
-    is_complete.write(TRUE);
-    return();
-}
