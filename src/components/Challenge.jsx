@@ -72,7 +72,7 @@ function ChallengeMint({challengeNumber}) {
     <>
       {!data && <p><button onClick={handleClick}>Great!! claim your NFT 🏆<br />(worth nothing just for fun!!)</button></p>}
       {data && <div><div>Tx.Hash: {hash}</div> <div>Status: {data.finality_status}  </div></div>}      
-      {data && ((data.finality_status=="ACCEPTED_ON_L2") || (data.finality_status=="ACCEPTED_ON_L1")) && <div> Already Minted <a href={'https://testnet.starkscan.co/nft/0x007d85f33b50c06d050cca1889decca8a20e5e08f3546a7f010325cb06e8963f/'+challengeNumber+'#overview'} target='_blank'>(View)</a></div>}
+      {data && ((data.finality_status=="ACCEPTED_ON_L2") || (data.finality_status=="ACCEPTED_ON_L1")) && <div> Already Minted <a href={'https://sepolia.starkscan.co/nft/0x342f8e98c92eacebaf89bd59cea94f0f9a671f88e2984d12ffe4638d991f057/'+challengeNumber+'#overview'} target='_blank'>(View)</a></div>}
     </>
   )
 }
