@@ -17,6 +17,7 @@ cairo1_challenge["challenge2"]=100
 cairo1_challenge["challenge3"]=200
 cairo1_challenge["challenge7"]=500
 cairo1_challenge["challenge7_erc20"]=0
+cairo1_challenge["challenge9"]=500
 cairo1_challenge["challenge10"]=700
 cairo1_challenge["challenge11"]=300
 cairo1_challenge["challenge12"]=700
@@ -33,7 +34,7 @@ cairo0_challenge["challenge8"]=1500
 cairo0_challenge["challenge8_dex"]=0
 cairo0_challenge["challenge8_erc20"]=0
 cairo0_challenge["challenge8_erc223"]=0
-cairo0_challenge["challenge9"]=500
+
 
 #**************************
 #* Constants (not change) *

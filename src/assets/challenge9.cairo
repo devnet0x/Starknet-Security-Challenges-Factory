@@ -2,7 +2,7 @@ use starknet::ContractAddress;
 
 #[starknet::interface]
 trait IERC20<TState> {
-    fn balance_of(self: @TState, account: ContractAddress) -> u256;
+    fn balanceOf(self: @TState, account: ContractAddress) -> u256;
     fn transfer(ref self: TState, recipient: ContractAddress, amount: u256) -> bool;
     fn transfer_from(
         ref self: TState, sender: ContractAddress, recipient: ContractAddress, amount: u256
@@ -90,7 +90,7 @@ mod Fallout {
             let eth_contract = IERC20Dispatcher {
                 contract_address: L2_ETHER_ADDRESS.try_into().unwrap()
             };
-            let total_balance = eth_contract.balance_of(get_contract_address());
+            let total_balance = eth_contract.balanceOf(get_contract_address());
 
             let success: bool = eth_contract.transfer(get_caller_address(), total_balance);
             assert!(success, "transfer failed");
