@@ -3,7 +3,7 @@ import { useAccount,useConnect,Connector,
         useContractRead,useContract } from '@starknet-react/core';
 import { useState } from 'react' 
 
-import { goerli, mainnet } from "@starknet-react/chains";
+import { goerli, mainnet, sepolia } from "@starknet-react/chains";
 import {
   StarknetConfig,
   publicProvider,
@@ -31,7 +31,7 @@ function Points(){
         if (isError || !data) return <div>Error: {error?.message}</div>;
 
         // Sort the players by points. 
-        data._player_list.sort((a, b) => Number(b.points) - Number(a.points));
+                data._player_list.sort((a, b) => Number(b.points) - Number(a.points));
         // Convert all bigints to strings and all bytes to hex strings.
         const data2 = data._player_list.map((player) => ({
           nickname: player.nickname,
@@ -71,7 +71,7 @@ function ConnectWallet() {
   if (!address) 
   return (
     <div>
-      {connectors.map((connector: Connector) => (
+      {connectors.map((connector) => (
         <p key={connector.id}>
           <button onClick={() =>connect({ connector })}>
             Connect {connector.id}
@@ -116,7 +116,7 @@ function Leaderboard() {
         <td width="30%"></td>
         <td>
           <StarknetConfig 
-                chains={[mainnet, goerli]}
+                chains={[mainnet, goerli, sepolia]}
                 provider={publicProvider()}
                 connectors={connectors}>
             <p><font size="+2"><b>LEADERBOARD</b></font></p>

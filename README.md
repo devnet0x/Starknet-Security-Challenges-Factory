@@ -1,6 +1,6 @@
 ![](./src/assets/logo.png)
 # INTRODUCTION
-Starknet Security Challenges Factory is an open source platform where you can build Starknet CTFs, earn points, keep records on a leaderboard and mint nfts (worth nothing, just for fun) to challenge resolutors. You can see a live version [here.](https://starknet-security-challenges.app/) 
+Starknet Security Challenges Factory is an open source platform where you can build Starknet CTFs, earn points, keep records on a leaderboard and mint nfts (worth nothing, just for fun) to challenge resolutors. You can play a live version in Sepolia network [here.](https://starknet-security-challenges.app/) 
 
 Here you will find:
 

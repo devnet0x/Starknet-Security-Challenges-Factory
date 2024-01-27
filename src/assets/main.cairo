@@ -282,6 +282,14 @@ mod SecurityChallenge {
 
             self.nft_address.write(new_nft_address);
         }
+
+        // Function to read challenge class hashes
+        fn get_challenge_class_hash(self: @ContractState, _challenge_number: felt252) -> felt252 {
+            let sender = get_caller_address();
+            let current_salt = self.salt.read();
+            let current_challenge = self.challenges.read(_challenge_number);
+            current_challenge.class_hash.into()
+        }
         
     }
 }
