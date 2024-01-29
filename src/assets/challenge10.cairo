@@ -1,8 +1,8 @@
 #[starknet::interface]
 trait ICoinFlipTrait<TContractState> {
-   fn isComplete(self: @TContractState) -> bool;
-   fn guess(ref self: TContractState, guess : felt252) -> bool;
-   fn getConsecutiveWins(self: @TContractState) -> u8;
+    fn isComplete(self: @TContractState) -> bool;
+    fn guess(ref self: TContractState, guess: felt252) -> bool;
+    fn getConsecutiveWins(self: @TContractState) -> u8;
 }
 
 #[starknet::contract]
@@ -57,12 +57,12 @@ mod CoinFlip {
         /// @param guess (felt252): numeric guess of coninflip results HEAD = 1
         ///               TAIL == 0
         /// @return status (bool): true if the player guessed correctly, false if it didn't
-        fn guess(ref self: ContractState, guess : felt252) -> bool {
+        fn guess(ref self: ContractState, guess: felt252) -> bool {
             let player = get_caller_address();
             let last_guess = self._lastGuessFromPlayer.read(player);
             let block_number = starknet::get_block_info().unbox().block_number;
 
-            assert( block_number > last_guess, 'one guess per block' );
+            assert(block_number > last_guess, 'one guess per block');
 
             self._lastGuessFromPlayer.write(player, block_number);
 
@@ -70,7 +70,7 @@ mod CoinFlip {
             let mut newConsecutiveWins = 0;
 
             let answer = self.compute_answer();
-            if guess == answer  {
+            if guess == answer {
                 newConsecutiveWins = consecutive_wins + 1;
             } else {
                 newConsecutiveWins = 0;
