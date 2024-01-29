@@ -6,12 +6,6 @@ trait IERC20<TContractState> {
     fn transfer(ref self: TContractState, recipient: ContractAddress, amount: u256);
 }
 
-#[starknet::interface]
-trait ISecretNumber<TContractState> {
-    fn isComplete(self: @TContractState) -> bool;
-    fn guess(ref self: TContractState, n: felt252);
-}
-
 #[starknet::contract]
 mod SecretNumber {
     use super::{IERC20Dispatcher, IERC20DispatcherTrait};
@@ -25,18 +19,21 @@ mod SecretNumber {
         is_complete: bool,
     }
 
-    #[constructor]
-    fn constructor(ref self: ContractState) {
-        self.is_complete.write(false);
-    }
+    #[abi(per_item)]
+    #[generate_trait]
+    impl SecretNumberImpl of SecretNumberTrait {
+        #[constructor]
+        fn constructor(ref self: ContractState) {
+            self.is_complete.write(false);
+        }
 
-    #[external(v0)]
-    impl SecretNumberImpl of super::ISecretNumber<ContractState> {
+        #[external(v0)]
         fn isComplete(self: @ContractState) -> bool {
             let output = self.is_complete.read();
             return (output);
         }
 
+        #[external(v0)]
         fn guess(ref self: ContractState, n: felt252) {
             let l2_token_address = contract_address_const::<
                 0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7

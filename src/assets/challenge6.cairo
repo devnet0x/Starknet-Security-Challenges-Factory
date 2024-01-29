@@ -22,36 +22,27 @@ mod Random {
     struct Storage {
         is_complete: bool,
         hash_result: felt252,
-        block_number: felt252,
-        block_timestamp: felt252,
     }
 
-    #[constructor]
-    fn constructor(ref self: ContractState) {
-        let block_number = get_block_info().unbox().block_number.into();
-        let block_timestamp = get_block_timestamp();
-        let res = core::pedersen::pedersen(block_number - 1, block_timestamp.into());
-        self.hash_result.write(res);
-        self.is_complete.write(false);
-        self.block_number.write(block_number - 1);
-        self.block_timestamp.write(block_timestamp.into());
-    }
-
+    #[abi(per_item)]
     #[generate_trait]
-    #[external(v0)]
-    impl RandomImpl of IRandom {
+    impl RandomImpl of RandomTrait {
+        #[constructor]
+        fn constructor(ref self: ContractState) {
+            let block_number = get_block_info().unbox().block_number.into();
+            let block_timestamp = get_block_timestamp();
+            let res = core::pedersen::pedersen(block_number - 1, block_timestamp.into());
+            self.hash_result.write(res);
+            self.is_complete.write(false);
+        }
+        
+        #[external(v0)]
         fn isComplete(self: @ContractState) -> bool {
             let output = self.is_complete.read();
             return (output);
         }
-        fn getBlockNumber(self: @ContractState) -> felt252 {
-            let output = self.block_number.read();
-            return (output);
-        }
-        fn getBlockTimestamp(self: @ContractState) -> felt252 {
-            let output = self.block_timestamp.read();
-            return (output);
-        }
+        
+        #[external(v0)]
         fn guess(ref self: ContractState, n: felt252) {
             let l2_token_address = contract_address_const::<
                 0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7
