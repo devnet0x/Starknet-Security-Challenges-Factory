@@ -15,7 +15,7 @@ body {
 
 .center-image {
   display: flex;
-  margin: 40px auto;
+  margin: 10px auto;
   max-width: 100%;
   max-height: 300px;
 }
@@ -26,8 +26,7 @@ body {
   align-items: center;
   justify-content: space-between;
   min-height: 80vh;
-  margin: 200px 20px;
-  flex: 1;
+  margin: 120px 20px;
 }
 
 .rounded-box {
@@ -35,7 +34,7 @@ body {
   border-radius: 15px;
   padding: 15px;
   margin: 10px;
-  max-width: 500px;
+  max-width: 440px;
   box-sizing: border-box;
 }
 
@@ -44,6 +43,7 @@ body {
   flex-flow: row wrap;
   justify-content: center;
   transition: 0.5s;
+  margin: auto;
 }
 
 .flex-table:hover {
@@ -53,14 +53,14 @@ body {
 .flex-row,
 .flex-row-emp,
 .flex-row-wide {
-  flex: 1;
+
   text-align: center;
   padding: 4px;
   box-sizing: border-box;
 }
 
 .flex-cell {
-  flex: 1;
+
   text-align: center;
   padding: 4px;
   box-sizing: border-box;
@@ -71,6 +71,43 @@ body {
   }
 }
 
+/*Challenge Text Style*/
+.text-title {
+  font-size: 2em;
+}
+
+.text-container {
+  white-space: pre-line;
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  text-align: center;
+}
+
+.code-title {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+/*Footer*/
+footer {
+  background-color: transparent;
+  padding: 0px;
+  margin-top: 10px;
+  text-align: center;
+}
+
+footer p a {
+  color: #f0e833 !important;
+  text-decoration: none;
+}
+
+footer p a:hover {
+  text-decoration: underline;
+}
+
+/*Responsive*/
 @media all and (max-width: 767px) {
 
   .flex-row,
@@ -82,6 +119,11 @@ body {
       width: 100%;
       border-right: 0;
     }
+  }
+
+  .text-container {
+    text-align: center;
+    max-width: 100%;
   }
 
   .column {
@@ -102,6 +144,11 @@ body {
     }
   }
 
+  .text-container {
+    text-align: center;
+    max-width: 100%;
+  }
+
   .column {
     width: 100%;
 
@@ -109,7 +156,6 @@ body {
     .flex-row-emp,
     .flex-row-wide {
       border-bottom: solid 1px;
-      /* Agrega un color o variable aquí */
     }
   }
 
@@ -117,20 +163,4 @@ body {
     width: 100%;
     border-right: 0;
   }
-}
-
-footer {
-  background-color: transparent;
-  padding: 0px;
-  margin-top: 10px;
-  text-align: center;
-}
-
-footer p a {
-  color: #f0e833 !important;
-  text-decoration: none;
-}
-
-footer p a:hover {
-  text-decoration: underline;
 }
