@@ -4,7 +4,8 @@
 #* Environment *
 #***************
 
-export STARKNET_PRIVATE_KEY="0x80a1c6bac0c24aebb2821704255ab786"
+# Account for starknet-devnet-rs (cargo run -- --seed 0)
+export STARKNET_PRIVATE_KEY="0x71d7bb07b9a64f6f78ac4c816aff4da9"
 STARKNET_ACCOUNT="~/devnet-ssc-acct.json"
 STARKNET_RPC="http://localhost:5050"
 
@@ -15,6 +16,9 @@ declare -A cairo1_challenge
 cairo1_challenge["challenge1"]=50
 cairo1_challenge["challenge2"]=100
 cairo1_challenge["challenge3"]=200
+cairo1_challenge["challenge4"]=200
+cairo1_challenge["challenge5"]=300
+cairo1_challenge["challenge6"]=300
 cairo1_challenge["challenge7"]=500
 cairo1_challenge["challenge7_erc20"]=0
 cairo1_challenge["challenge9"]=500
@@ -27,9 +31,6 @@ cairo1_challenge["challenge14_coin"]=0
 cairo1_challenge["challenge14_wallet"]=0
 
 declare -A cairo0_challenge
-cairo0_challenge["challenge4"]=200
-cairo0_challenge["challenge5"]=300
-cairo0_challenge["challenge6"]=300
 cairo0_challenge["challenge8"]=1500
 cairo0_challenge["challenge8_dex"]=0
 cairo0_challenge["challenge8_erc20"]=0
