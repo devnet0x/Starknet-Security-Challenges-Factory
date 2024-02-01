@@ -1,14 +1,8 @@
 import React from 'react';
 import { useState, useMemo } from 'react'
-import { 
-  useAccount,
-  useConnect, 
-  Connector, 
-  useContractWrite,
-  useWaitForTransaction,
-  useContractRead,useContract 
-} from '@starknet-react/core';
-import { goerli, mainnet } from "@starknet-react/chains";
+import { useAccount,useConnect, Connector, useContractWrite,useWaitForTransaction,
+        useContractRead,useContract } from '@starknet-react/core';
+import { goerli, sepolia, mainnet } from "@starknet-react/chains";
 import {
   StarknetConfig,
   publicProvider,
@@ -16,9 +10,11 @@ import {
   braavos,
   useInjectedConnectors,
 } from "@starknet-react/core";
+
 import '../App.css';
 import mainABI from '../assets/main_abi.json'
 import global from '../global.jsx'
+
 import challengeCode1 from '../assets/challenge1.cairo'
 import challengeCode2 from '../assets/challenge2.cairo'
 import challengeCode3 from '../assets/challenge3.cairo'
@@ -39,8 +35,10 @@ import challengeCode13 from '../assets/challenge13.cairo'
 import challengeCode14 from '../assets/challenge14.cairo'
 import challengeCode14Wallet from '../assets/challenge14_wallet.cairo'
 import challengeCode14Coin from '../assets/challenge14_coin.cairo'
+
 import { monokaiSublime } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import SyntaxHighlighter from 'react-syntax-highlighter';
+
 import ToggleSwitch from './ToggleSwitch.js';
 
 function ChallengeMint({challengeNumber}) {
@@ -74,7 +72,7 @@ function ChallengeMint({challengeNumber}) {
     <>
       {!data && <p><button onClick={handleClick}>Great!! claim your NFT 🏆<br />(worth nothing just for fun!!)</button></p>}
       {data && <div><div>Tx.Hash: {hash}</div> <div>Status: {data.finality_status}  </div></div>}      
-      {data && ((data.finality_status==="ACCEPTED_ON_L2") || (data.finality_status==="ACCEPTED_ON_L1")) && <div> Already Minted <a href={'https://testnet.starkscan.co/nft/0x007d85f33b50c06d050cca1889decca8a20e5e08f3546a7f010325cb06e8963f/'+challengeNumber+'#overview'} target='_blank'>(View)</a></div>}
+      {data && ((data.finality_status=="ACCEPTED_ON_L2") || (data.finality_status=="ACCEPTED_ON_L1")) && <div> Already Minted <a href={'https://sepolia.starkscan.co/nft/0x342f8e98c92eacebaf89bd59cea94f0f9a671f88e2984d12ffe4638d991f057/'+challengeNumber+'#overview'} target='_blank'>(View)</a></div>}
     </>
   )
 }
@@ -95,168 +93,167 @@ function ClaimNFT({challengeNumber}){
   if (isError || !data) return <div>Error: {error?.message}</div>;
 
   return(
-    <div>
-    {data && data._minted === 0?<div>Already Resolved<br /><ChallengeMint challengeNumber={challengeNumber} /></div>:<div>Already Resolved<br />Already Minted <a href={'https://testnet.starkscan.co/nft/0x007d85f33b50c06d050cca1889decca8a20e5e08f3546a7f010325cb06e8963f/'+challengeNumber+'#overview'} target='_blank'>(View)</a></div>}
-    </div>
+      <div>
+      {data && data._minted == 0?<div>Already Resolved<br /><ChallengeMint challengeNumber={challengeNumber} /></div>:<div>Already Resolved<br />Already Minted <a href={'https://sepolia.starkscan.co/nft/0x0342f8e98c92eacebaf89bd59cea94f0f9a671f88e2984d12ffe4638d991f057/'+challengeNumber+'#overview'} target='_blank'>(View)</a></div>}
+      </div>
   ) 
 }
 
 function Status({challengeNumber}){
-  const { address } = useAccount()
+    const { address } = useAccount()
 
-  const { data, isError, isLoading, error } = useContractRead({
-    functionName: "get_challenge_status",
-    abi:mainABI,
-    address: global.MAIN_CONTRACT_ADDRESS,
-    args:[address,challengeNumber],
-    watch: true,
-  });
+    const { data, isError, isLoading, error } = useContractRead({
+      functionName: "get_challenge_status",
+      abi:mainABI,
+      address: global.MAIN_CONTRACT_ADDRESS,
+      args:[address,challengeNumber],
+      watch: true,
+    });
 
-  if (isLoading) return <div>Loading ...</div>;
-  if (isError || !data) return <div>Error: {error?.message}</div>;
+    if (isLoading) return <div>Loading ...</div>;
+    if (isError || !data) return <div>Error: {error?.message}</div>;
 
-  return(
-    <div>
-    {data && data._resolved === 0?(<ChallengeDeploy challengeNumber={challengeNumber}/>):<ClaimNFT challengeNumber={challengeNumber}/>}
-    </div>
-  ) 
+    return(
+        <div>
+        {data && data._resolved == 0?(<ChallengeDeploy challengeNumber={challengeNumber}/>):<ClaimNFT challengeNumber={challengeNumber}/>}
+        </div>
+    ) 
 }
 
 function Points(){
-  const { address } = useAccount()
+        const { address } = useAccount()
 
-  const { data, isError, isLoading, error } = useContractRead({
-    abi:mainABI,
-    address: global.MAIN_CONTRACT_ADDRESS,
-    functionName: "get_points",
-    args:[address],
-    watch: true,
-  });
+        const { data, isError, isLoading, error } = useContractRead({
+          abi:mainABI,
+          address: global.MAIN_CONTRACT_ADDRESS,
+          functionName: "get_points",
+          args:[address],
+          watch: true,
+        });
 
-  if (isLoading) return <div>Loading ...</div>;
-  if (isError || !data) return <div>Error: {error?.message}</div>;
+        if (isLoading) return <div>Loading ...</div>;
+        if (isError || !data) return <div>Error: {error?.message}</div>;
 
-  return(
-    <span>
-    Your Score:{data._points.toString()}
-    </span>
-  ) 
+        return(
+            <span>
+            Your Score:{data._points.toString()}
+            </span>
+        ) 
 }
 
 function ChallengeDeploy({challengeNumber}) {
 
-  const [hash, setHash] = useState(undefined)
+    const [hash, setHash] = useState(undefined)
+  
+    const { address } = useAccount();
+  
+    const { contract } = useContract({
+      abi: mainABI,
+      address: global.MAIN_CONTRACT_ADDRESS,
+    });
+  
+    const calls = useMemo(() => {
+      if (!address || !contract) return [];
+      return contract.populateTransaction["deploy_challenge"](challengeNumber);
+    }, [contract, address]);
+  
+    const {
+      writeAsync
+    } = useContractWrite({
+      calls,
+    }); 
 
-  const { address } = useAccount();
+    const handleClick = () => {
+      writeAsync().then(tx => setHash(tx.transaction_hash))
+    }
 
-  const { contract } = useContract({
-    abi: mainABI,
-    address: global.MAIN_CONTRACT_ADDRESS,
-  });
+    const { isLoading, isError, error, data } = useWaitForTransaction({hash: hash, watch: true})
 
-  const calls = useMemo(() => {
-    if (!address || !contract) return [];
-    return contract.populateTransaction["deploy_challenge"](challengeNumber);
-  }, [contract, address]);
+    let newContractAddress=""
 
-  const {
-    writeAsync
-  } = useContractWrite({
-    calls,
-  }); 
-
-  const handleClick = () => {
-    writeAsync().then(tx => setHash(tx.transaction_hash))
-  }
-
-  const { isLoading, isError, error, data } = useWaitForTransaction({hash: hash, watch: true})
-
-  let newContractAddress=""
-
-  return (
-    <>
-      <p><button onClick={handleClick}>Begin Challenge</button></p>
-      {data && (data.finality_status==="ACCEPTED_ON_L2"||data.finality_status==="ACCEPTED_ON_L1") &&
-      data.events.forEach(event => {
-        let paddedFrom="0x"+event.from_address.substring(2).padStart(64,'0')
-        let paddedTo="0x"+global.MAIN_CONTRACT_ADDRESS.substring(2).padStart(64,'0')
-        if (paddedFrom===paddedTo) {
-          newContractAddress=event.data[0]
+    return (
+      <>
+        <p><button onClick={handleClick}>Begin Challenge</button></p>
+        {data && (data.finality_status=="ACCEPTED_ON_L2"||data.finality_status=="ACCEPTED_ON_L1") &&
+                data.events.forEach(event => {
+                  let paddedFrom="0x"+event.from_address.substring(2).padStart(64,'0')
+                  let paddedTo="0x"+global.MAIN_CONTRACT_ADDRESS.substring(2).padStart(64,'0')
+                  if (paddedFrom==paddedTo) {
+                    newContractAddress=event.data[0]
+                  }
+                })
         }
-      })
-      }
-      {isError && <div>Error: {error?.message}</div>}
-      {data && <div><div>Tx.Hash: {hash}</div> <div>Status: {data.finality_status}  </div></div>}      
-      {newContractAddress && <div> Challenge contract deployed at address: {newContractAddress} </div>}
-      {data && (data.finality_status==="ACCEPTED_ON_L2"||data.finality_status==="ACCEPTED_ON_L1")? <div> <ChallengeCheck challengeNumber={challengeNumber}/> </div>:<div></div>}
-      </>
-  )
+        {isError && <div>Error: {error?.message}</div>}
+        {data && <div><div>Tx.Hash: {hash}</div> <div>Status: {data.finality_status}  </div></div>}      
+        {newContractAddress && <div> Challenge contract deployed at address: {newContractAddress} </div>}
+        {data && (data.finality_status=="ACCEPTED_ON_L2"||data.finality_status=="ACCEPTED_ON_L1")? <div> <ChallengeCheck challengeNumber={challengeNumber}/> </div>:<div></div>}
+       </>
+    )
 }
 
 function ChallengeCheck({challengeNumber}) {
-  const [hash, setHash] = useState(undefined)
+    const [hash, setHash] = useState(undefined)
 
-  const { address } = useAccount();
+    const { address } = useAccount();
+  
+    const { contract } = useContract({
+      abi: mainABI,
+      address: global.MAIN_CONTRACT_ADDRESS,
+    });
+  
+    const calls = useMemo(() => {
+      if (!address || !contract) return [];
+      return contract.populateTransaction["test_challenge"](challengeNumber);
+    }, [contract, address]);
+  
+    const {
+      writeAsync
+    } = useContractWrite({
+      calls,
+    }); 
+  
+    const handleClick = () => {
+      writeAsync().then(tx => setHash(tx.transaction_hash))
+    }
 
-  const { contract } = useContract({
-    abi: mainABI,
-    address: global.MAIN_CONTRACT_ADDRESS,
-  });
+    const { isLoading, isError, error, data } = useWaitForTransaction({hash: hash, watch: true})
 
-  const calls = useMemo(() => {
-    if (!address || !contract) return [];
-    return contract.populateTransaction["test_challenge"](challengeNumber);
-  }, [contract, address]);
-
-  const {
-    writeAsync
-  } = useContractWrite({
-    calls,
-  }); 
-
-  const handleClick = () => {
-    writeAsync().then(tx => setHash(tx.transaction_hash))
+    return (
+      <>
+        <p><button onClick={handleClick}>Check Solution</button></p>
+        {isError && <div>Error: {error.message}</div>}
+        {data && <div><div>Tx.Hash: {hash}</div> <div>Status: {data.finality_status}  </div></div>} 
+        {data && (data.finality_status=="ACCEPTED_ON_L2"||data.finality_status=="ACCEPTED_ON_L1") && <ClaimNFT challengeNumber={challengeNumber}/> }    
+       </>
+    )
   }
 
-  const { isLoading, isError, error, data } = useWaitForTransaction({hash: hash, watch: true})
-
-  return (
-    <>
-      <p><button onClick={handleClick}>Check Solution</button></p>
-      {isError && <div>Error: {error.message}</div>}
-      {data && <div><div>Tx.Hash: {hash}</div> <div>Status: {data.finality_status}  </div></div>} 
-      {data && (data.finality_status==="ACCEPTED_ON_L2"||data.finality_status==="ACCEPTED_ON_L1") && <ClaimNFT challengeNumber={challengeNumber}/> }    
-    </>
-  )
-}
-
 function ConnectWallet({challengeNumber}) {
-  const { connect, connectors } = useConnect()
-  const { address } = useAccount()
-  const { disconnect } = useConnect()
-
-  if (!address) 
-  return (
-    <div>
-      {connectors.map((connector: Connector) => (
-      <p key={connector.id}>
-        <button onClick={() =>connect({ connector })}>
-          Connect {connector.id}
-        </button>
-      </p>
-    ))}
-    </div>
-  )
-  return (
-    <>
-      <p>Connected: {address.substring(0,6)}...{address.substring(address.length - 4)}.</p>
-      {address && <p><Points /></p>}
-      {address && <p><Status challengeNumber={challengeNumber}/></p>}
-    </>
-  )
-}
+    const { connect, connectors } = useConnect()
+    const { address } = useAccount()
+    const { disconnect } = useConnect()
   
-
+    if (!address) 
+    return (
+      <div>
+        {connectors.map((connector) => (
+        <p key={connector.id}>
+          <button onClick={() =>connect({ connector })}>
+            Connect {connector.id}
+          </button>
+        </p>
+      ))}
+      </div>
+    )
+    return (
+      <>
+        <p>Connected: {address.substring(0,6)}...{address.substring(address.length - 4)}.</p>
+        {address && <p><Points /></p>}
+        {address && <p><Status challengeNumber={challengeNumber}/></p>}
+      </>
+    )
+  }
+  
 export default function Challenge({ challengeNumber }) {
   const [text, setText] = React.useState();
   const [text2, setText2] = React.useState();
