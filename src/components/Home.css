@@ -108,7 +108,23 @@ footer p a:hover {
 }
 
 /*Responsive*/
-@media all and (max-width: 767px) {
+@media all and (max-width: 767px),
+(max-width: 1368px) {
+
+  body{
+    font-size: 13px;
+  }
+
+  .center-image {
+    max-width: 100%;
+    max-height: 170px;
+    margin: 0 auto;
+  }
+
+  .container,
+  .rounded-box {
+    max-width: 340px;  
+  }
 
   .flex-row,
   .flex-row-emp,
