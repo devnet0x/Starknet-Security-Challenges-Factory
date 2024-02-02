@@ -87,13 +87,13 @@ span {
   margin-top: 4px;
 }
 
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 768px),(max-width: 1368px) {
   .navbar {
     height: 50px;
   }
   .starknet {
-    max-width: 55%;
-    max-height: auto;
+    max-width: 100%;
+    max-height: 38px;
   }
 }
 
@@ -103,7 +103,7 @@ span {
   }
 
   .starknet {
-    max-width: 60%;
+    max-width: 50%;
     max-height: auto;
   }
 }
