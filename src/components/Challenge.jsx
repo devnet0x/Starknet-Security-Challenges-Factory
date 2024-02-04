@@ -352,12 +352,15 @@ export default function Challenge({ challengeNumber }) {
     Aquí está el código para este desafío:";
 
   titleChallenge[3] = "CHOOSE A NICKNAME";
-  descChallengeEn[3] = "It’s time to set your nickname! This nickname is how you’ll show up on the leaderboard.\n\n \
-    The game smart contract keeps track of a nickname for every player.\n\n \
-    To complete this challenge, set your nickname to a non-empty string. The smart contract  \
-    is running on the SEPOLIA test network at the address "+ global.MAIN_CONTRACT_ADDRESS.toString() + ".\n\n \
+  descChallengeEn[3] = "It’s time to set your nickname! \
+    This nickname is how you’ll show up on the leaderboard. \n\n \
+    The game smart contract keeps track of a nickname for every player. \n\n \
+    To complete this challenge, set your nickname to a non-empty string. \n\n \
+    The smart contract is running on the SEPOLIA test network at the address \
+    "+ global.MAIN_CONTRACT_ADDRESS.toString() + ".\n\n \
     Here’s the code for this challenge:";
-  descChallengeEs[3] = "¡Es hora de establecer tu nickname!Es la forma en que aparecerás en la tabla de clasificación.\n\n \
+  descChallengeEs[3] = "¡Es hora de establecer tu nickname! \
+    Es la forma en que aparecerás en la tabla de clasificación.\n\n \
     El contrato inteligente del juego tiene un registro de nicknames para cada jugador.\n\n \
     Para completar este reto, establezca su apodo en una cadena no vacía. El contrato inteligente \
     se está ejecutando en Starknet SEPOLIA Testnet en la dirección "+ global.MAIN_CONTRACT_ADDRESS.toString() + ".\n\n \
@@ -465,34 +468,34 @@ export default function Challenge({ challengeNumber }) {
     order: "random"
   });
 
-
-  const CodeContainer = ({ text, title }) => (
-    <div className="code-container">
-      {title && <p className="code-title">{title}</p>}
+const CodeContainer = ({ text, title }) => (
+  <div className="code-container">
+    {title && <p className="code-title">{title}</p>}
+    <div className="code-content">
       <SyntaxHighlighter
         language="cpp"
         style={monokaiSublime}
+        showLineNumbers="true"
         customStyle={{
           backgroundColor: "#000000",
           fontSize: 14,
           lineHeight: 1.2,
-          padding: 10,
+          padding: '10px',
           maxWidth: "100%",
-          margin: "0 auto",
+          margin: "0",
           borderRadius: 10,
         }}
-        smart-tabs="true"
-        showLineNumbers="true"
       >
         {text}
       </SyntaxHighlighter>
     </div>
-  );
+  </div>
+);
 
   return (
     <div className="container flex-table row" role="rowgroup">
-      <div className="flex-row-emp" role="cell"></div>
-      <div className="flex-row-wide" role="cell" >
+      <div className="flex-row-emp"></div>
+      <div className="flex-row-wide">
         <ToggleSwitch
           id={chkID}
           checked={lang}
@@ -501,7 +504,7 @@ export default function Challenge({ challengeNumber }) {
           onChange={(checked) => setLang(checked)}
         />
         <div />
-        <div className="flex-row-wide" role="cell" style={{ padding: '5px', margin: '5px' }}>
+        <div className="flex-row-wide" style={{ padding: '5px', margin: '5px' }}>
           <StarknetConfig
             chains={[mainnet, goerli, sepolia]}
             provider={publicProvider()}
@@ -553,7 +556,7 @@ export default function Challenge({ challengeNumber }) {
             <ConnectWallet challengeNumber={challengeNumber} />
           </StarknetConfig>
         </div>
-        <div className="flex-row-emp" role="cell"></div>
+        <div className="flex-row-emp"></div>
       </div>
     </div>
   );
