@@ -355,7 +355,7 @@ export default function Challenge({ challengeNumber }) {
   descChallengeEn[3] = "It’s time to set your nickname! \
     This nickname is how you’ll show up on the leaderboard. \n\n \
     The game smart contract keeps track of a nickname for every player. \n\n \
-    To complete this challenge, set your nickname to a non-empty string. \n\n \
+    To complete this challenge, set your nickname to a non-empty string. \
     The smart contract is running on the SEPOLIA test network at the address \
     "+ global.MAIN_CONTRACT_ADDRESS.toString() + ".\n\n \
     Here’s the code for this challenge:";
@@ -467,30 +467,31 @@ export default function Challenge({ challengeNumber }) {
     // Randomize the order of the connectors.
     order: "random"
   });
+        
 
-const CodeContainer = ({ text, title }) => (
-  <div className="code-container">
-    {title && <p className="code-title">{title}</p>}
-    <div className="code-content">
-      <SyntaxHighlighter
-        language="cpp"
-        style={monokaiSublime}
-        showLineNumbers="true"
-        customStyle={{
-          backgroundColor: "#000000",
-          fontSize: 14,
-          lineHeight: 1.2,
-          padding: '10px',
-          maxWidth: "100%",
-          margin: "0",
-          borderRadius: 10,
-        }}
-      >
-        {text}
-      </SyntaxHighlighter>
+  const CodeContainer = ({ text, title }) => (
+    <div className="code-container">
+      {title && <p className="code-title">{title}</p>}
+      <div className="code-content">
+        <SyntaxHighlighter
+          language="cpp"
+          style={monokaiSublime}
+          showLineNumbers="true"
+          customStyle={{
+            backgroundColor: "#000000",
+            fontSize: 14,
+            lineHeight: 1.2,
+            padding: '10px',
+            maxWidth: "100%",
+            margin: "0",
+            borderRadius: 10,
+          }}
+        >
+          {text}
+        </SyntaxHighlighter>
+      </div>
     </div>
-  </div>
-);
+  );
 
   return (
     <div className="container flex-table row" role="rowgroup">
