@@ -64,7 +64,6 @@ body {
   text-align: center;
   padding: 4px;
   box-sizing: border-box;
-  border-right: solid 1px;
 
   &:last-child {
     border-right: 0;
@@ -80,14 +79,31 @@ body {
   white-space: pre-line;
   max-width: 800px;
   margin: 0 auto;
-  display: flex;
+  display: auto;
   align-items: center;
   text-align: center;
 }
 
+/*Code Contenier*/
 .code-title {
   text-align: center;
   margin-bottom: 10px;
+}
+
+.code-container {
+  width: 100%;
+}
+
+.code-content {
+  overflow-x: auto;
+  white-space: pre-wrap;
+  width: 100%;
+  max-width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  background-color: #000000;
+  font-size: 14px;
+  line-height: 1.2;
 }
 
 /*Footer*/
@@ -129,7 +145,8 @@ footer p a:hover {
   .flex-row,
   .flex-row-emp,
   .flex-row-wide {
-    width: 100%;
+    width: 900px;  
+    box-sizing: border-box;
 
     &.first {
       width: 100%;
@@ -140,6 +157,11 @@ footer p a:hover {
   .text-container {
     text-align: center;
     max-width: 100%;
+  }
+
+  .flex-cell {
+    width: 100%;
+    border-right: 0;
   }
 
   .column {
