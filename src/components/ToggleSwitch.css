@@ -1,96 +1,130 @@
 .toggle-switch {
-    position: relative;
-    margin-right: 10px;
-    width: 75px;
-    display: inline-block;
-    vertical-align: middle;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    text-align: left; }
-    .toggle-switch-checkbox {
-      display: none; }
-    .toggle-switch-label {
-      display: block;
-      overflow: hidden;
-      cursor: pointer;
-      border: 0 solid #bbb;
-      border-radius: 20px;
-      margin: 0; }
-      .toggle-switch-label:focus {
-        outline: none; }
-        .toggle-switch-label:focus > span {
-          box-shadow: 0 0 2px 5px red; }
-      .toggle-switch-label > span:focus {
-        outline: none; }
-    .toggle-switch-inner {
-      display: block;
-      width: 200%;
-      margin-left: -100%;
-      transition: margin 0.3s ease-in 0s; }
-      .toggle-switch-inner:before, .toggle-switch-inner:after {
-        display: block;
-        float: left;
-        width: 50%;
-        height: 34px;
-        padding: 0;
-        line-height: 34px;
-        font-size: 10px;
-        color: white;
-        font-weight: bold;
-        box-sizing: border-box; }
-      .toggle-switch-inner:before {
-        content: attr(data-yes);
-        text-transform: uppercase;
-        padding-left: 5px;
-        background-color: #2F855A;
-        color: #fff; }
-    .toggle-switch-disabled {
-      background-color: #ddd;
-      cursor: not-allowed; }
-      .toggle-switch-disabled:before {
-        background-color: #ddd;
-        cursor: not-allowed; }
-    .toggle-switch-inner:after {
-      content: attr(data-no);
-      text-transform: uppercase;
-      padding-right: 7px;
-      background-color: #2F855A;
-      color: #fff;
-      text-align: right; }
-    .toggle-switch-switch {
-      display: block;
-      width: 24px;
-      margin: 5px;
-      background: #fff;
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      right: 40px;
-      border: 0 solid #bbb;
-      border-radius: 20px;
-      transition: all 0.3s ease-in 0s; }
-    .toggle-switch-checkbox:checked + .toggle-switch-label .toggle-switch-inner {
-      margin-left: 0; }
-    .toggle-switch-checkbox:checked + .toggle-switch-label .toggle-switch-switch {
-      right: 0px; }
-    .toggle-switch.small-switch {
-      width: 40px; }
-      .toggle-switch.small-switch .toggle-switch-inner:after, .toggle-switch.small-switch .toggle-switch-inner:before {
-        height: 20px;
-        line-height: 20px; }
-      .toggle-switch.small-switch .toggle-switch-switch {
-        width: 16px;
-        right: 20px;
-        margin: 2px; }
-    @media screen and (max-width: 991px) {
-      .toggle-switch {
-        transform: scale(0.9); } }
-    @media screen and (max-width: 767px) {
-      .toggle-switch {
-        transform: scale(0.825); } }
-    @media screen and (max-width: 575px) {
-      .toggle-switch {
-        transform: scale(0.75); } }
-  
-  /*# sourceMappingURL=styles.css.map */ 
+  position: fixed;
+  top: 18px;
+  right: 10px;
+  width: 100%;
+  display: inline-block;
+  vertical-align: top;
+  text-align: left;
+}
+
+.toggle-switch-checkbox {
+  display: none;
+}
+
+.toggle-switch-label {
+  display: block;
+  overflow: hidden;
+  cursor: pointer;
+  border: 0 solid #bbb;
+  border-radius: 20px;
+  margin: 0;
+}
+
+.toggle-switch-label:focus {
+  outline: none;
+}
+
+.toggle-switch-label:focus>span {
+  box-shadow: 0 0 2px 5px red;
+}
+
+.toggle-switch-label>span:focus {
+  outline: none;
+}
+
+.toggle-switch-inner {
+  display: block;
+  width: 200%;
+  margin-left: -100%;
+  position: relative;
+  transition: margin 0.3s ease-in 0s;
+}
+
+.toggle-switch-inner:before,
+.toggle-switch-inner:after {
+  display: block;
+  float: left;
+  width: 50%;
+  height: 34px;
+  padding: 0;
+  line-height: 34px;
+  font-size: 10px;
+  color: white;
+  font-weight: bold;
+  box-sizing: border-box;
+}
+
+.toggle-switch-inner:before {
+  content: attr(data-yes);
+  text-transform: uppercase;
+  padding-left: 5px;
+  background-color: #2F855A;
+  color: #fff;
+}
+
+.toggle-switch-disabled {
+  background-color: #ddd;
+  cursor: not-allowed;
+}
+
+.toggle-switch-disabled:before {
+  background-color: #ddd;
+  cursor: not-allowed;
+}
+
+.toggle-switch-inner:after {
+  content: attr(data-no);
+  text-transform: uppercase;
+  padding-right: 7px;
+  background-color: #2F855A;
+  color: #fff;
+  text-align: right;
+}
+
+.toggle-switch-switch {
+  display: block;
+  width: 24px;
+  margin: 5px;
+  background: #fff;
+  position: absolute;
+  bottom: 0px;
+  top: 0px;
+  right: 30px;
+  border: 0 solid #bbb;
+  border-radius: 20px;
+  transition: all 0.3s ease-in 0s;
+}
+
+.toggle-switch-checkbox:checked+.toggle-switch-label .toggle-switch-inner {
+  margin-left: 0;
+}
+
+.toggle-switch-checkbox:checked+.toggle-switch-label .toggle-switch-switch {
+  right: 0px;
+}
+
+.toggle-switch.small-switch {
+  width: 40px;
+}
+
+.toggle-switch.small-switch .toggle-switch-inner:after,
+.toggle-switch.small-switch .toggle-switch-inner:before {
+  height: 20px;
+  line-height: 20px;
+}
+
+.toggle-switch.small-switch .toggle-switch-switch {
+  width: 16px;
+  right: 20px;
+  margin: 2px;
+}
+
+@media all and (min-width: 467px) {
+  .toggle-switch {
+    position: fixed;
+    right: 20px;
+    /* Ajustar este valor según sea necesario */
+  }
+}
+/*# sourceMappingURL=styles.css.map */ 
