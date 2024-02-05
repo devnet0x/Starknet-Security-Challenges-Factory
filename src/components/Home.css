@@ -82,6 +82,8 @@ body {
   display: auto;
   align-items: center;
   text-align: center;
+  font-size: 1.3em;
+  line-height: 1em;
 }
 
 /*Code Contenier*/

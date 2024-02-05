@@ -474,7 +474,7 @@ export default function Challenge({ challengeNumber }) {
       {title && <p className="code-title">{title}</p>}
       <div className="code-content">
         <SyntaxHighlighter
-          language="cpp"
+          language="rust"
           style={monokaiSublime}
           showLineNumbers="true"
           customStyle={{
@@ -543,10 +543,6 @@ export default function Challenge({ challengeNumber }) {
                 <div>
                   <CodeContainer text={text} title="Custom_ERC20" />
                   <CodeContainer text={text2} title="Custom_ERC20" />
-                </div>
-              ) : challengeNumber > 9 ? (
-                <div>
-                  <CodeContainer text={text} />
                 </div>
               ) : (
                 <div>
