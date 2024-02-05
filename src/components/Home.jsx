@@ -11,9 +11,6 @@ function Home() {
     if (lang) {
         return (
             <div className="main-container">
-                <div className="image-container">
-                    <img src={logo} alt="logo" className="center-image" />
-                </div>
 
                 <ToggleSwitch
                     id={chkID}
@@ -22,6 +19,11 @@ function Home() {
                     small={true}
                     onChange={(checked) => setLang(checked)}
                 />
+
+                <div className="image-container">
+                    <img src={logo} alt="logo" className="center-image" />
+                </div>
+
                 <div className='flex-table row'>
                     <div className="text-containers">
                         <div className="rounded-box">
@@ -75,9 +77,6 @@ function Home() {
     } else {
         return (
             <div className="main-container">
-                <div className="image-container">
-                    <img src={logo} alt="logo" className="center-image" />
-                </div>
 
                 <ToggleSwitch
                     id={chkID}
@@ -86,6 +85,12 @@ function Home() {
                     small={true}
                     onChange={(checked) => setLang(checked)}
                 />
+
+                <div className="image-container">
+                    <img src={logo} alt="logo" className="center-image" />
+                </div>
+
+
                 <div className='flex-table row'>
                     <div className="text-containers">
                         <div className="rounded-box">
@@ -137,4 +142,4 @@ function Home() {
     }
 }
 
-export default Home;
+export default Home;    

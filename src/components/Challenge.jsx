@@ -254,150 +254,150 @@ function ConnectWallet({challengeNumber}) {
     )
   }
   
+export default function Challenge({ challengeNumber }) {
+  const [text, setText] = React.useState();
+  const [text2, setText2] = React.useState();
+  const [text3, setText3] = React.useState();
+  const [text4, setText4] = React.useState();
+  const [lang, setLang] = React.useState(true);
 
-export default function Challenge({challengeNumber}) {
-    const [text, setText] = React.useState()  
-    const challengeCode=[];
-    challengeCode[1]=challengeCode1;
-    challengeCode[2]=challengeCode2;
-    challengeCode[3]=challengeCode3;
-    challengeCode[4]=challengeCode4;
-    challengeCode[5]=challengeCode5;
-    challengeCode[6]=challengeCode6;
-    challengeCode[7]=challengeCode7;
-    challengeCode[8]=challengeCode8;
-    challengeCode[9]=challengeCode9;
-    challengeCode[10]=challengeCode10;
-    challengeCode[11]=challengeCode11;
-    challengeCode[12]=challengeCode12;
-    challengeCode[13]=challengeCode13;
-    challengeCode[14]=challengeCode14;
+  const challengeCode = {
+    1: challengeCode1,
+    2: challengeCode2,
+    3: challengeCode3,
+    4: challengeCode4,
+    5: challengeCode5,
+    6: challengeCode6,
+    7: challengeCode7,
+    8: challengeCode8,
+    9: challengeCode9,
+    10: challengeCode10,
+    11: challengeCode11,
+    12: challengeCode12,
+    13: challengeCode13,
+    14: challengeCode14,
+  };
 
-    fetch(challengeCode[challengeNumber])
-      .then((response) => response.text())
-      .then((textContent) => {
+  React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(challengeCode[challengeNumber]);
+        const textContent = await response.text();
         setText(textContent);
-      });
-    
-    const [text2, setText2] = React.useState();
-    const [text3, setText3] = React.useState(); 
-    const [text4, setText4] = React.useState();
-    if (challengeNumber==7){
-      fetch(challengeCode7_erc20)
-        .then((response) => response.text())
-        .then((textContent) => {
-          setText2(textContent); 
-        });
-    }
 
-    if (challengeNumber==8){
-      fetch(challenge8ERC223Code)
-        .then((response) => response.text())
-        .then((textContent) => {
-          setText2(textContent); 
-        });
-      
-      fetch(challenge8ERC20Code)
-        .then((response) => response.text())
-        .then((textContent) => {
-          setText3(textContent); 
-        });
-      
-      fetch(challenge8DEXCode)
-        .then((response) => response.text())
-        .then((textContent) => {
-          setText4(textContent); 
-        });
-    }
+        // Operaciones de recuperación adicionales basadas en challengeNumber se pueden agregar aquí
+        if (challengeNumber === 7) {
+          const response2 = await fetch(challengeCode7_erc20);
+          const textContent2 = await response2.text();
+          setText2(textContent2);
+        }
 
-    if (challengeNumber==14){
-      fetch(challengeCode14Wallet)
-        .then((response) => response.text())
-        .then((textContent) => {
-          setText2(textContent); 
-        });
-      
-      fetch(challengeCode14Coin)
-        .then((response) => response.text())
-        .then((textContent) => {
-          setText3(textContent); 
-        });
-    }
-    
-    const textOptions = ["EN", "ES"];
-    const chkID = "checkboxID";
-    const [lang, setLang] = useState(true);
+        if (challengeNumber === 8) {
+          const response2 = await fetch(challenge8ERC223Code);
+          const textContent2 = await response2.text();
+          setText2(textContent2);
 
-    const titleChallenge = Array(100);
-    const descChallengeEn = Array(100);
-    const descChallengeEs = Array(100);
-    
-    titleChallenge[1]="DEPLOY A CONTRACT";
-    descChallengeEn[1]= "Just connect your wallet in starknet SEPOLIA testnet and click the \
+          const response3 = await fetch(challenge8ERC20Code);
+          const textContent3 = await response3.text();
+          setText3(textContent3);
+
+          const response4 = await fetch(challenge8DEXCode);
+          const textContent4 = await response4.text();
+          setText4(textContent4);
+        }
+
+        if (challengeNumber === 14) {
+          const response2 = await fetch(challengeCode14Wallet);
+          const textContent2 = await response2.text();
+          setText2(textContent2);
+
+          const response3 = await fetch(challengeCode14Coin);
+          const textContent3 = await response3.text();
+          setText3(textContent3);
+        }
+      } catch (error) {
+        console.error('Error al recuperar el código del desafío:', error);
+      }
+    };
+
+    fetchData();
+  }, [challengeNumber]);
+
+  const textOptions = ["EN", "ES"];
+  const chkID = "checkboxID";
+  const titleChallenge = Array(100);
+  const descChallengeEn = Array(100);
+  const descChallengeEs = Array(100);
+
+  titleChallenge[1] = "DEPLOY A CONTRACT";
+  descChallengeEn[1] = "Just connect your wallet in starknet SEPOLIA testnet and click the \
     \"Begin Challenge\" button on the bottom to deploy the challenge contract.\n\n \
     You don’t need to do anything with the contract once it’s deployed. \n\n \
     Just press “Check Solution” button to verify that you deployed successfully.\n\n \
     Here’s the code for this challenge:";
-    descChallengeEs[1]="Solo conecta tu wallet en Starknet SEPOLIA Testnet y haz click en el boton \
+  descChallengeEs[1] = "Solo conecta tu wallet en Starknet SEPOLIA Testnet y haz click en el boton \
     \"Begin Challenge\" al fondo para desplegar el contrato inteligente.\n\n \
     No necesitas hacer nada con el contrato una vez que se implementa. \n\n \
     Simplemente presiona el botón \"Check Solution\" para verificar que se implementó correctamente.\n\n \
     Aquí está el código para este reto:";
-      
-    titleChallenge[2]="CALL ME";
-    descChallengeEn[2]= "To complete this challenge, all you need to do is call a function.\n\n \
+
+  titleChallenge[2] = "CALL ME";
+  descChallengeEn[2] = "To complete this challenge, all you need to do is call a function.\n\n \
     The \“Begin Challenge\” button will deploy the following contract, call the function named  \
     callme and then click the \“Check Solution\” button.\n\n \
     Here’s the code for this challenge:";
-    descChallengeEs[2]= "Para completar este desafío, todo lo que necesita hacer es llamar a una función.\n\n \
+  descChallengeEs[2] = "Para completar este desafío, todo lo que necesita hacer es llamar a una función.\n\n \
     El botón \"Begin Challenge\" desplegará el siguiente contrato, llama a la función denominada \
     callme y luego haz clic en el botón \"Check Solution\".\n\n \
     Aquí está el código para este desafío:";
 
-    titleChallenge[3]="CHOOSE A NICKNAME";
-    descChallengeEn[3]= "It’s time to set your nickname! This nickname is how you’ll show up on the leaderboard.\n\n \
-    The game smart contract keeps track of a nickname for every player.\n\n \
-    To complete this challenge, set your nickname to a non-empty string. The smart contract  \
-    is running on the SEPOLIA test network at the address "+global.MAIN_CONTRACT_ADDRESS.toString()+".\n\n \
+  titleChallenge[3] = "CHOOSE A NICKNAME";
+  descChallengeEn[3] = "It’s time to set your nickname! \
+    This nickname is how you’ll show up on the leaderboard. \n\n \
+    The game smart contract keeps track of a nickname for every player. \n\n \
+    To complete this challenge, set your nickname to a non-empty string. \
+    The smart contract is running on the SEPOLIA test network at the address \
+    "+ global.MAIN_CONTRACT_ADDRESS.toString() + ".\n\n \
     Here’s the code for this challenge:";
-    descChallengeEs[3]= "¡Es hora de establecer tu nickname!Es la forma en que aparecerás en la tabla de clasificación.\n\n \
+  descChallengeEs[3] = "¡Es hora de establecer tu nickname! \
+    Es la forma en que aparecerás en la tabla de clasificación.\n\n \
     El contrato inteligente del juego tiene un registro de nicknames para cada jugador.\n\n \
     Para completar este reto, establezca su apodo en una cadena no vacía. El contrato inteligente \
-    se está ejecutando en Starknet SEPOLIA Testnet en la dirección "+global.MAIN_CONTRACT_ADDRESS.toString()+".\n\n \
+    se está ejecutando en Starknet SEPOLIA Testnet en la dirección "+ global.MAIN_CONTRACT_ADDRESS.toString() + ".\n\n \
     Aquí está el código para este reto:";
 
-    titleChallenge[4]="GUESS A NUMBER";
-    descChallengeEn[4]= "I’m thinking of a number. All you have to do is guess it.\n\n \
+  titleChallenge[4] = "GUESS A NUMBER";
+  descChallengeEn[4] = "I’m thinking of a number. All you have to do is guess it.\n\n \
     Here’s the code for this challenge:";
-    descChallengeEs[4]= "Estoy pensando en un número. Todo lo que tienes que hacer es adivinarlo.\n\n \
+  descChallengeEs[4] = "Estoy pensando en un número. Todo lo que tienes que hacer es adivinarlo.\n\n \
     Aquí está el código para este reto:";
 
-    titleChallenge[5]="GUESS SECRET NUMBER";
-    descChallengeEn[5]= "Putting the answer in the code makes things a little too easy.  \
+  titleChallenge[5] = "GUESS SECRET NUMBER";
+  descChallengeEn[5] = "Putting the answer in the code makes things a little too easy.  \
     This time I’ve only stored the hash of the number (between 1 and 5000).  \
     Good luck reversing a cryptographic hash!:";
-    descChallengeEs[5]= "Poner la respuesta en el código hace que las cosas sean demasiado fáciles. \
+  descChallengeEs[5] = "Poner la respuesta en el código hace que las cosas sean demasiado fáciles. \
     Esta vez solo he almacenado el hash del número (entre 1 y 5000). \
     ¡Buena suerte para revertir un hash criptográfico!:";
 
-    titleChallenge[6]="GUESS RANDOM NUMBER";
-    descChallengeEn[6]= "This time the number is generated based on a couple fairly random sources:";
-    descChallengeEs[6]= "Esta vez, el número generado está basado en un para de fuentes bastante aleatorias:";
+  titleChallenge[6] = "GUESS RANDOM NUMBER";
+  descChallengeEn[6] = "This time the number is generated based on a couple fairly random sources:";
+  descChallengeEs[6] = "Esta vez, el número generado está basado en un para de fuentes bastante aleatorias:";
 
-    titleChallenge[7]="VitaToken seems safe, right?";
-    descChallengeEn[7]= "Our beloved Vitalik is the proud owner of 100 $VTLK, which is a token with minimal functions that follows \
+  titleChallenge[7] = "VitaToken seems safe, right?";
+  descChallengeEn[7] = "Our beloved Vitalik is the proud owner of 100 $VTLK, which is a token with minimal functions that follows \
     the ERC20 token standard. Or at least that is what it seems...Upon deployment,  \
    the VToken contract mints 100 $VTLK to Vitalik's address. \
    Is there a way for you to steal those tokens from him?\n \
    Challenge source code:";
-    descChallengeEs[7]= "Nuestro querido Vitalik es el orgulloso propietario de 100 $VTLK, que es un token con funciones mínimas que sigue \
+  descChallengeEs[7] = "Nuestro querido Vitalik es el orgulloso propietario de 100 $VTLK, que es un token con funciones mínimas que sigue \
     el estándar de tokens ERC20. O al menos eso es lo que parece... Tras el deploy, \
    el contrato VToken emite (mint) 100 $VTLK a la dirección de Vitalik. \
    ¿Hay alguna manera de que puedas robarle los tokens?\n \
    Código fuente del reto:";
 
-    titleChallenge[8]="It's always sunny in decentralized exchanges";
-    descChallengeEn[8]= "I bet you are familiar with decentralized exchanges: a magical place where one can exchange different tokens. \
+  titleChallenge[8] = "It's always sunny in decentralized exchanges";
+  descChallengeEn[8] = "I bet you are familiar with decentralized exchanges: a magical place where one can exchange different tokens. \
     InsecureDexLP is exactly that: a very insecure Uniswap-kind-of decentralized exchange. \
     Recently, the $ISEC token got listed in this dex and can be traded against a not-so-popular token called $SET.\n\n \
     \
@@ -410,7 +410,7 @@ export default function Challenge({challengeNumber}) {
     Will you be able to drain most of InsecureDexLP's $ISEC/$SET liquidity? 😈😈😈\n \
     Build a smart contract to exploit this vulnerability and call it with call_exploit function.\n\n \
     Main deployer contract with challenge setup:";
-    descChallengeEs[8]= "Apuesto a que está familiarizado con los exchange descentralizados: un lugar mágico donde se pueden intercambiar diferentes tokens. \
+  descChallengeEs[8] = "Apuesto a que está familiarizado con los exchange descentralizados: un lugar mágico donde se pueden intercambiar diferentes tokens. \
     InsecureDexLP es exactamente eso: un tipo de exchange descentralizado estilo Uniswap pero muy inseguro. \
     Recientemente, el token $ISEC se incluyó en este dex y se puede cambiar por un token no tan popular llamado $SET.\n\n \
     \
@@ -424,122 +424,141 @@ export default function Challenge({challengeNumber}) {
     Crea un contrato inteligente para explotar esta vulnerabilidad y llámalo con la función call_exploit.\n\n \
     Main deployer contract with challenge setup:";
 
-    titleChallenge[9]="FAL1OUT";
-    descChallengeEn[9]= "Claim ownership of the contract below to complete this level:";
-    descChallengeEs[9]= "Reclama la propiedad del contrato a continuación para completar este nivel:";
+  titleChallenge[9] = "FAL1OUT";
+  descChallengeEn[9] = "Claim ownership of the contract below to complete this level:";
+  descChallengeEs[9] = "Reclama la propiedad del contrato a continuación para completar este nivel:";
 
-    titleChallenge[10]="COIN FLIP";
-    descChallengeEn[10]= "This is a coin flipping game where you need to build up your winning streak by guessing the outcome of a coin flip.  \
+  titleChallenge[10] = "COIN FLIP";
+  descChallengeEn[10] = "This is a coin flipping game where you need to build up your winning streak by guessing the outcome of a coin flip.  \
     To complete this level you'll need to use your psychic abilities to guess the correct outcome 6 times in a row:";
-    descChallengeEs[10]= "Este es un juego de lanzamiento de monedas en el que debes construir tu racha ganadora adivinando el resultado del lanzamiento. \
+  descChallengeEs[10] = "Este es un juego de lanzamiento de monedas en el que debes construir tu racha ganadora adivinando el resultado del lanzamiento. \
     Para completar este nivel necesitarás usar tus habilidades psíquicas para adivinar el resultado correcto 6 veces seguidas:";
 
-    titleChallenge[11]="TELEPHONE";
-    descChallengeEn[11]= "Claim ownership of the contract below to complete this level:";
-    descChallengeEs[11]= "Reclama la propiedad del contrato a continuación para completar este nivel:";
+  titleChallenge[11] = "TELEPHONE";
+  descChallengeEn[11] = "Claim ownership of the contract below to complete this level:";
+  descChallengeEs[11] = "Reclama la propiedad del contrato a continuación para completar este nivel:";
 
-    titleChallenge[12]="VAULT";
-    descChallengeEn[12]= "Unlock the vault to pass the level!.";
-    descChallengeEs[12]= "Desbloquea la bóveda para pasar de nivel!.";
+  titleChallenge[12] = "VAULT";
+  descChallengeEn[12] = "Unlock the vault to pass the level!.";
+  descChallengeEs[12] = "Desbloquea la bóveda para pasar de nivel!.";
 
-    titleChallenge[13]="NAUGHTY COIN";
-    descChallengeEn[13]= "NaughtCoin is an ERC20 token and you're already holding all of them. The catch is that you'll only be able  \
+  titleChallenge[13] = "NAUGHTY COIN";
+  descChallengeEn[13] = "NaughtCoin is an ERC20 token and you're already holding all of them. The catch is that you'll only be able  \
     to transfer them after a 10 year lockout period. Can you figure out how to get them out to another address so that you can transfer  \
     them freely? Complete this level by getting your token balance to 0.";
-    descChallengeEs[13]= "NaughtCoin es un token ERC20 token y tu ya tienes 10.000 de ellos. El problema es que tu solo serás capaz de  \
+  descChallengeEs[13] = "NaughtCoin es un token ERC20 token y tu ya tienes 10.000 de ellos. El problema es que tu solo serás capaz de  \
     transferirlos después de un periodo de 10 años de bloqueo. Te puedes imaginar como conseguir sacarlos a otra cuenta de manera que puedas transferirlos  \
     libremente? Completa este nivel dejando el saldo de tu NauthCoin en 0.";
 
-    titleChallenge[14]="GOOD SAMARITAN";
-    descChallengeEn[14]= "This instance represents a Good Samaritan that is wealthy and ready to donate some coins to anyone requesting it. \
+  titleChallenge[14] = "GOOD SAMARITAN";
+  descChallengeEn[14] = "This instance represents a Good Samaritan that is wealthy and ready to donate some coins to anyone requesting it. \
     Would you be able to drain all the balance from his Wallet?";
-    descChallengeEs[14]= "Esta instancia representa a un Buen Samaritano que es muy rico y está dispuesto a donar a todo aquel que se lo solicite. \
+  descChallengeEs[14] = "Esta instancia representa a un Buen Samaritano que es muy rico y está dispuesto a donar a todo aquel que se lo solicite. \
     Serás capaz de vaciar todo el saldo de su wallet?";
 
-    const { connectors } = useInjectedConnectors({
-      // Show these connectors if the user has no connector installed.
-      recommended: [
-        argent(),
-        braavos(),
-      ],
-      // Hide recommended connectors if the user has any connector installed.
-      includeRecommended: "onlyIfNoConnectors",
-      // Randomize the order of the connectors.
-      order: "random"
-    });
+  const { connectors } = useInjectedConnectors({
+    // Show these connectors if the user has no connector installed.
+    recommended: [
+      argent(),
+      braavos(),
+    ],
+    // Hide recommended connectors if the user has any connector installed.
+    includeRecommended: "onlyIfNoConnectors",
+    // Randomize the order of the connectors.
+    order: "random"
+  });
+        
 
-    return (
-      <div className="App" class='flex-table row' role='rowgroup'>
-        <div class='flex-row-emp' role='cell'></div>
-        <div class='flex-row-wide' role='cell'>
-        <div align='center'>
-        <ToggleSwitch id={chkID} checked={lang} optionLabels={textOptions} small={true} onChange={checked => setLang(checked)} />
-        </div>
-          <StarknetConfig 
-              chains={[mainnet, goerli, sepolia]}
-              provider={publicProvider()}
-              connectors={connectors}>
-            <p><font size="+2"><b>{titleChallenge[challengeNumber]}</b></font></p>
-            <div style={{whiteSpace: 'pre-line'}}>
-            {lang?descChallengeEn[challengeNumber]:descChallengeEs[challengeNumber]}
+  const CodeContainer = ({ text, title }) => (
+    <div className="code-container">
+      {title && <p className="code-title">{title}</p>}
+      <div className="code-content">
+        <SyntaxHighlighter
+          language="cpp"
+          style={monokaiSublime}
+          showLineNumbers="true"
+          customStyle={{
+            backgroundColor: "#000000",
+            fontSize: 14,
+            lineHeight: 1.2,
+            padding: '10px',
+            maxWidth: "100%",
+            margin: "0",
+            borderRadius: 10,
+          }}
+        >
+          {text}
+        </SyntaxHighlighter>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="container flex-table row" role="rowgroup">
+      <div className="flex-row-emp"></div>
+      <div className="flex-row-wide">
+        <ToggleSwitch
+          id={chkID}
+          checked={lang}
+          optionLabels={textOptions}
+          small={true}
+          onChange={(checked) => setLang(checked)}
+        />
+        <div />
+        <div className="flex-row-wide" style={{ padding: '5px', margin: '5px' }}>
+          <StarknetConfig
+            chains={[mainnet, goerli, sepolia]}
+            provider={publicProvider()}
+            connectors={connectors}
+          >
+            <p className="text-title">
+              <b>{titleChallenge[challengeNumber]}</b>
+            </p>
+            <div className="text-container">
+              {lang ? (
+                <div className="challenge-description">
+                  <p>{descChallengeEn[challengeNumber]}</p>
+                </div>
+              ) : (
+                <div className="challenge-description">
+                  <p>{descChallengeEs[challengeNumber]}</p>
+                </div>
+              )}
             </div>
-            <div align='justify'>
-              {challengeNumber==8?<div>
-                            <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
-                            {text}
-                            </SyntaxHighlighter>
-                            Insecure DEX:
-                            <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
-                              {text4}
-                            </SyntaxHighlighter>
-                            ISET ERC223:
-                            <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
-                              {text2}
-                            </SyntaxHighlighter>
-                            ISEC ERC20:
-                            <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
-                              {text3}
-                            </SyntaxHighlighter>
-                          </div>:challengeNumber==14?
-                          <div>
-                            <SyntaxHighlighter language="rust" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
-                            {text}
-                            </SyntaxHighlighter>
-                            Wallet:
-                            <SyntaxHighlighter language="rust" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
-                              {text2}
-                            </SyntaxHighlighter>
-                            Coin:
-                            <SyntaxHighlighter language="rust" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
-                              {text3}
-                            </SyntaxHighlighter>
-                          </div>:challengeNumber==7?
-                          <div>
-                            <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
-                            {text}
-                            </SyntaxHighlighter>
-                            Custom_ERC20:
-                            <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
-                              {text2}
-                            </SyntaxHighlighter>
-                          </div>:challengeNumber>9?
-                          <div>
-                            <SyntaxHighlighter language="rust" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
-                            {text}
-                            </SyntaxHighlighter>
-                          </div>:
-                          <div>
-                          <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
-                          {text}
-                          </SyntaxHighlighter>
-                        </div>
-                          }
+            <div align="justify">
+              {challengeNumber === 8 ? (
+                <div>
+                  <CodeContainer text={text} title="Insecure DEX" />
+                  <CodeContainer text={text4} title="ISET ERC223" />
+                  <CodeContainer text={text2} title="ISEC ERC20" />
+                  <CodeContainer text={text3} title="ISEC ERC20" />
+                </div>
+              ) : challengeNumber === 14 ? (
+                <div>
+                  <CodeContainer text={text} title="Wallet" />
+                  <CodeContainer text={text2} title="Coin" />
+                  <CodeContainer text={text3} title="Coin" />
+                </div>
+              ) : challengeNumber === 7 ? (
+                <div>
+                  <CodeContainer text={text} title="Custom_ERC20" />
+                  <CodeContainer text={text2} title="Custom_ERC20" />
+                </div>
+              ) : challengeNumber > 9 ? (
+                <div>
+                  <CodeContainer text={text} />
+                </div>
+              ) : (
+                <div>
+                  <CodeContainer text={text} />
+                </div>
+              )}
             </div>
             <ConnectWallet challengeNumber={challengeNumber} />
           </StarknetConfig>
         </div>
-        <div class='flex-row-emp' role='cell'></div>
+        <div className="flex-row-emp"></div>
       </div>
-    );
-  }
-  
+    </div>
+  );
+}

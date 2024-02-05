@@ -15,7 +15,7 @@ body {
 
 .center-image {
   display: flex;
-  margin: 40px auto;
+  margin: 10px auto;
   max-width: 100%;
   max-height: 300px;
 }
@@ -26,8 +26,7 @@ body {
   align-items: center;
   justify-content: space-between;
   min-height: 80vh;
-  margin: 200px 20px;
-  flex: 1;
+  margin: 120px 20px;
 }
 
 .rounded-box {
@@ -35,7 +34,7 @@ body {
   border-radius: 15px;
   padding: 15px;
   margin: 10px;
-  max-width: 500px;
+  max-width: 440px;
   box-sizing: border-box;
 }
 
@@ -44,6 +43,7 @@ body {
   flex-flow: row wrap;
   justify-content: center;
   transition: 0.5s;
+  margin: auto;
 }
 
 .flex-table:hover {
@@ -53,35 +53,115 @@ body {
 .flex-row,
 .flex-row-emp,
 .flex-row-wide {
-  flex: 1;
+
   text-align: center;
   padding: 4px;
   box-sizing: border-box;
 }
 
 .flex-cell {
-  flex: 1;
+
   text-align: center;
   padding: 4px;
   box-sizing: border-box;
-  border-right: solid 1px;
 
   &:last-child {
     border-right: 0;
   }
 }
 
-@media all and (max-width: 767px) {
+/*Challenge Text Style*/
+.text-title {
+  font-size: 2em;
+}
+
+.text-container {
+  white-space: pre-line;
+  max-width: 800px;
+  margin: 0 auto;
+  display: auto;
+  align-items: center;
+  text-align: center;
+}
+
+/*Code Contenier*/
+.code-title {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.code-container {
+  width: 100%;
+}
+
+.code-content {
+  overflow-x: auto;
+  white-space: pre-wrap;
+  width: 100%;
+  max-width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  background-color: #000000;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+/*Footer*/
+footer {
+  background-color: transparent;
+  padding: 0px;
+  margin-top: 10px;
+  text-align: center;
+}
+
+footer p a {
+  color: #f0e833 !important;
+  text-decoration: none;
+}
+
+footer p a:hover {
+  text-decoration: underline;
+}
+
+/*Responsive*/
+@media all and (max-width: 767px),
+(max-width: 1368px) {
+
+  body{
+    font-size: 13px;
+  }
+
+  .center-image {
+    max-width: 100%;
+    max-height: 170px;
+    margin: 0 auto;
+  }
+
+  .container,
+  .rounded-box {
+    max-width: 340px;  
+  }
 
   .flex-row,
   .flex-row-emp,
   .flex-row-wide {
-    width: 100%;
+    width: 900px;  
+    box-sizing: border-box;
 
     &.first {
       width: 100%;
       border-right: 0;
     }
+  }
+
+  .text-container {
+    text-align: center;
+    max-width: 100%;
+  }
+
+  .flex-cell {
+    width: 100%;
+    border-right: 0;
   }
 
   .column {
@@ -102,6 +182,11 @@ body {
     }
   }
 
+  .text-container {
+    text-align: center;
+    max-width: 100%;
+  }
+
   .column {
     width: 100%;
 
@@ -109,7 +194,6 @@ body {
     .flex-row-emp,
     .flex-row-wide {
       border-bottom: solid 1px;
-      /* Agrega un color o variable aquí */
     }
   }
 
@@ -117,20 +201,4 @@ body {
     width: 100%;
     border-right: 0;
   }
-}
-
-footer {
-  background-color: transparent;
-  padding: 0px;
-  margin-top: 10px;
-  text-align: center;
-}
-
-footer p a {
-  color: #f0e833 !important;
-  text-decoration: none;
-}
-
-footer p a:hover {
-  text-decoration: underline;
 }
