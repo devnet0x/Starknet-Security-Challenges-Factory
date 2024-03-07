@@ -47,7 +47,7 @@ pip3 install cairo-lang
 1) Start a local starknet devnet in rust instance
 ```
 cd starknet-devnet-rs
-cargo run
+cargo run -- --seed 0
 ```
 2) Create your devnet account file:
 ```

@@ -44,7 +44,7 @@ mod Challenge7Real {
         ];
 
         let vtoken_class_hash: ClassHash = class_hash_const::<
-            0x02c8aa260ff80b26b5e57c9d0d74693214315f1f10e0d3c903381ff44516e653
+            0x07903b722bdaac5ad5140e1a951f8565bd5763a54242d8e56dfe3c0a15b3d0c4
         >();
 
         let (new_contract_address, _) = deploy_syscall(
