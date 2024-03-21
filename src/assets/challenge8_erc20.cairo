@@ -3,7 +3,7 @@
 #[starknet::contract]
 mod InSecureumToken {
     use openzeppelin::token::erc20::ERC20Component;
-    use starknet::{ContractAddress, get_caller_address, get_contract_address};
+    use starknet::ContractAddress;
 
     component!(path: ERC20Component, storage: erc20, event: ERC20Event);
 
@@ -29,10 +29,9 @@ mod InSecureumToken {
     }
 
     #[constructor]
-    fn constructor(ref self: ContractState, recipient: ContractAddress, minted_tokens: u256) {
+    fn constructor(ref self: ContractState, deployer: ContractAddress, supply: u256) {
         self.erc20.initializer("InSecureumToken", "ISEC");
-
-        self.erc20._mint(recipient, minted_tokens);
+        self.erc20._mint(deployer, supply);
     }
 }
 
