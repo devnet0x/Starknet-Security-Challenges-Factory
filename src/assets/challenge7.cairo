@@ -11,14 +11,13 @@ trait IChallenge7Real<TContractState> {
     fn get_vtoken_address(self: @TContractState) -> ContractAddress;
 }
 
-
 #[starknet::contract]
 mod Challenge7Real {
+    use super::{IChallenge7ERC20Dispatcher, IChallenge7ERC20DispatcherTrait};
+    use starknet::syscalls::deploy_syscall;
     use starknet::{
         ContractAddress, get_contract_address, ClassHash, class_hash_to_felt252, class_hash_const
     };
-    use super::{IChallenge7ERC20Dispatcher, IChallenge7ERC20DispatcherTrait};
-    use starknet::syscalls::deploy_syscall;
 
     #[storage]
     struct Storage {
@@ -55,7 +54,7 @@ mod Challenge7Real {
         self.vtoken_address.write(new_contract_address);
     }
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl Challenge7Real of super::IChallenge7Real<ContractState> {
         fn isComplete(self: @ContractState) -> bool {
             let vitalik_address = get_contract_address();
@@ -63,8 +62,10 @@ mod Challenge7Real {
             let erc20_dispatcher = IChallenge7ERC20Dispatcher { contract_address: vtoken };
             let current_balance = erc20_dispatcher.balance_of(vitalik_address);
             assert(current_balance == 0, 'challenge not completed yet');
+
             true
         }
+
         fn get_vtoken_address(self: @ContractState) -> ContractAddress {
             self.vtoken_address.read()
         }

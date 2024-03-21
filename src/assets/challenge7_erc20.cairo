@@ -14,8 +14,9 @@ trait IChallenge7ERC20<TContractState> {
 #[starknet::contract]
 mod Challenge7ERC20 {
     use core::num::traits::zero::Zero;
-use starknet::{ContractAddress, get_caller_address};
     use core::integer::BoundedInt;
+    use starknet::{ContractAddress, get_caller_address};
+
     #[storage]
     struct Storage {
         ERC20_name: felt252,
@@ -49,11 +50,12 @@ use starknet::{ContractAddress, get_caller_address};
         const INSUFFICIENT_BALANCE: felt252 = 'ERC20: insufficient balance';
     }
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl Challenge7ERC20 of super::IChallenge7ERC20<ContractState> {
         fn balance_of(self: @ContractState, account: ContractAddress) -> u256 {
             self.ERC20_balances.read(account)
         }
+
         fn transfer_from(
             ref self: ContractState,
             sender: ContractAddress,
@@ -64,6 +66,7 @@ use starknet::{ContractAddress, get_caller_address};
             self._spend_allowance(sender, caller, amount);
             self._transfer(sender, recipient, amount);
         }
+
         fn approve(
             ref self: ContractState, owner: ContractAddress, spender: ContractAddress, amount: u256
         ) {
@@ -78,6 +81,7 @@ use starknet::{ContractAddress, get_caller_address};
             self.ERC20_total_supply.write(self.ERC20_total_supply.read() + amount);
             self.ERC20_balances.write(recipient, self.ERC20_balances.read(recipient) + amount);
         }
+
         fn _transfer(
             ref self: ContractState,
             sender: ContractAddress,
@@ -90,6 +94,7 @@ use starknet::{ContractAddress, get_caller_address};
             self.ERC20_balances.write(sender, self.ERC20_balances.read(sender) - amount);
             self.ERC20_balances.write(recipient, self.ERC20_balances.read(recipient) + amount);
         }
+
         fn _approve(
             ref self: ContractState, owner: ContractAddress, spender: ContractAddress, amount: u256
         ) {
@@ -97,6 +102,7 @@ use starknet::{ContractAddress, get_caller_address};
             assert(!spender.is_zero(), Errors::APPROVE_TO_ZERO);
             self.ERC20_allowances.write((owner, spender), amount);
         }
+
         fn _spend_allowance(
             ref self: ContractState, owner: ContractAddress, spender: ContractAddress, amount: u256
         ) {

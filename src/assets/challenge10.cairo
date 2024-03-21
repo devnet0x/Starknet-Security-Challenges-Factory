@@ -1,16 +1,13 @@
 #[starknet::interface]
 trait ICoinFlipTrait<TContractState> {
-   fn isComplete(self: @TContractState) -> bool;
-   fn guess(ref self: TContractState, guess : felt252) -> bool;
-   fn getConsecutiveWins(self: @TContractState) -> u8;
+    fn isComplete(self: @TContractState) -> bool;
+    fn guess(ref self: TContractState, guess: felt252) -> bool;
+    fn getConsecutiveWins(self: @TContractState) -> u8;
 }
 
 #[starknet::contract]
 mod CoinFlip {
-    use starknet::ContractAddress;
-    use starknet::get_block_info;
-    use starknet::get_caller_address;
-    use starknet::info::get_tx_info;
+    use starknet::{ContractAddress, get_block_info, get_caller_address, get_tx_info};
 
     const HEAD: felt252 = 1;
     const TAIL: felt252 = 0;
@@ -34,22 +31,24 @@ mod CoinFlip {
         wins: u8
     }
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl CoinFlipImpl of super::ICoinFlipTrait<ContractState> {
         /// @notice gets a player consecutive win count
         /// @return status (u8): Count of consecutive wins by player
         fn getConsecutiveWins(self: @ContractState) -> u8 {
-            return self._consecutive_wins.read();
+            self._consecutive_wins.read()
         }
 
         /// @notice Show if the game is completed
         /// @return status (bool): Count of consecutive wins by player
         fn isComplete(self: @ContractState) -> bool {
             let wins = self._consecutive_wins.read();
+
             if (wins >= 6) {
-                return true;
+                true
+            } else {
+                false
             }
-            return false;
         }
 
         /// @notice evaluates if the player guesses correctly
@@ -57,12 +56,12 @@ mod CoinFlip {
         /// @param guess (felt252): numeric guess of coninflip results HEAD = 1
         ///               TAIL == 0
         /// @return status (bool): true if the player guessed correctly, false if it didn't
-        fn guess(ref self: ContractState, guess : felt252) -> bool {
+        fn guess(ref self: ContractState, guess: felt252) -> bool {
             let player = get_caller_address();
             let last_guess = self._lastGuessFromPlayer.read(player);
             let block_number = starknet::get_block_info().unbox().block_number;
 
-            assert( block_number > last_guess, 'one guess per block' );
+            assert(block_number > last_guess, 'one guess per block');
 
             self._lastGuessFromPlayer.write(player, block_number);
 
@@ -70,7 +69,7 @@ mod CoinFlip {
             let mut newConsecutiveWins = 0;
 
             let answer = self.compute_answer();
-            if guess == answer  {
+            if guess == answer {
                 newConsecutiveWins = consecutive_wins + 1;
             } else {
                 newConsecutiveWins = 0;
@@ -80,7 +79,7 @@ mod CoinFlip {
 
             self.emit(Event::wins_counter(wins_counter { wins: newConsecutiveWins }));
 
-            return guess == answer;
+            guess == answer
         }
     }
 
@@ -94,10 +93,10 @@ mod CoinFlip {
             let entropy: u256 = txInfo.unbox().transaction_hash.into();
 
             if (entropy.low % 2 == 0) {
-                return HEAD;
+                HEAD
+            } else {
+                TAIL
             }
-
-            return TAIL;
         }
     }
 }

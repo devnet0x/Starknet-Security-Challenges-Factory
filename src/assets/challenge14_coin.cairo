@@ -5,10 +5,8 @@ trait INotifyable<TContractState> {
 
 #[starknet::contract]
 mod Coin {
-    use starknet::ContractAddress;
-    use starknet::get_caller_address;
-    use super::INotifyableDispatcherTrait;
-    use super::INotifyableDispatcher;
+    use super::{INotifyableDispatcher, INotifyableDispatcherTrait};
+    use starknet::{ContractAddress, get_caller_address};
 
     #[storage]
     struct Storage {
@@ -45,15 +43,16 @@ mod Coin {
                     self.balances.write(sender, self.balances.read(sender) + amount_);
                     self.balances.write(dest_, self.balances.read(dest_) - amount_);
                 }
-                return result;
+
+                result
             } else {
-                return false;
+                false
             }
         }
 
         #[external(v0)]
         fn get_balance(self: @ContractState, account_: ContractAddress) -> u256 {
-            return self.balances.read(account_);
+            self.balances.read(account_)
         }
     }
 }

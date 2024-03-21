@@ -1,69 +1,58 @@
-%lang starknet
-from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.bool import FALSE, TRUE
-from starkware.starknet.common.syscalls import get_contract_address,get_caller_address
-from starkware.cairo.common.uint256 import (Uint256,uint256_eq)
-from starkware.cairo.common.math import assert_not_equal
-from starkware.cairo.common.hash import hash2
+use starknet::{ContractAddress};
 
-@contract_interface
-namespace IERC20 {
-    func balanceOf(account: felt) -> (balance: Uint256) {
-    }
-    func transfer(recipient: felt, amount: Uint256) -> (success: felt) {
-    }
+#[starknet::interface]
+trait IERC20<TContractState> {
+    fn balanceOf(self: @TContractState, account: ContractAddress) -> u256;
+    fn transfer(ref self: TContractState, recipient: ContractAddress, amount: u256);
 }
 
-@storage_var
-func is_complete() -> (value: felt) {
-}
+#[starknet::contract]
+mod SecretNumber {
+    use super::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use core::hash::{HashStateTrait, HashStateExTrait};
+    use starknet::{get_contract_address, get_caller_address, contract_address_const};
 
-const hash_result=0x23c16a2a9adbcd4988f04bbc6bc6d90275cfc5a03fbe28a6a9a3070429acb96;
+    const hash_result: felt252 = 0x23c16a2a9adbcd4988f04bbc6bc6d90275cfc5a03fbe28a6a9a3070429acb96;
 
-// ######## Constructor
-
-@constructor
-func constructor{
-    syscall_ptr: felt*,
-    pedersen_ptr: HashBuiltin*,
-    range_check_ptr,
-}() {
-    alloc_locals;
-    is_complete.write(FALSE);
-    return ();
-}
-
-@view
-func isComplete{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (output:felt) {
-    alloc_locals;
-    let (output)=is_complete.read();
-    return (output=output);
-}
-
-@external
-func guess{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    n:felt) {
-    alloc_locals;
-    let l2_token_address=0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7;
-
-    let (contract_address)=get_contract_address();
-    let (balance)=IERC20.balanceOf(contract_address=l2_token_address,account=contract_address); 
-
-    let amount: Uint256 = Uint256(10000000000000000, 0);
-    let (is_equal) = uint256_eq(balance, amount);
-    with_attr error_message("Deposit required.") {
-        assert is_equal = 1;
+    #[storage]
+    struct Storage {
+        is_complete: bool,
     }
 
-    let field1 = 1000;
-    let (res) = hash2{hash_ptr=pedersen_ptr}(field1, n);
+    #[abi(per_item)]
+    #[generate_trait]
+    impl SecretNumberImpl of SecretNumberTrait {
+        #[constructor]
+        fn constructor(ref self: ContractState) {
+            self.is_complete.write(false);
+        }
 
-    with_attr error_message("Incorrect guessed number.") {
-        assert res=hash_result;
-    } 
-    
-    let (sender)=get_caller_address();
-    IERC20.transfer(contract_address=l2_token_address,recipient=sender,amount=amount);
-    is_complete.write(TRUE);
-    return();
+        #[external(v0)]
+        fn isComplete(self: @ContractState) -> bool {
+            let output = self.is_complete.read();
+
+            output
+        }
+
+        #[external(v0)]
+        fn guess(ref self: ContractState, n: felt252) {
+            let l2_token_address = contract_address_const::<
+                0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7
+            >();
+            let contract_address = get_contract_address();
+            let balance: u256 = IERC20Dispatcher { contract_address: l2_token_address }
+                .balanceOf(account: contract_address);
+            let amount: u256 = 10000000000000000;
+            assert(balance == amount, 'deposit required');
+
+            let res = core::pedersen::pedersen(1000, n);
+            assert(res == hash_result, 'Incorrect guessed number.');
+
+            let sender = get_caller_address();
+            IERC20Dispatcher { contract_address: l2_token_address }
+                .transfer(recipient: sender, amount: amount);
+
+            self.is_complete.write(true);
+        }
+    }
 }

@@ -485,6 +485,7 @@ export default function Challenge({challengeNumber}) {
             </div>
             <div align='justify'>
               {challengeNumber==8?<div>
+                            Deployer:
                             <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
                             {text}
                             </SyntaxHighlighter>
@@ -502,6 +503,7 @@ export default function Challenge({challengeNumber}) {
                             </SyntaxHighlighter>
                           </div>:challengeNumber==14?
                           <div>
+                            GoodSamaritan:
                             <SyntaxHighlighter language="rust" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
                             {text}
                             </SyntaxHighlighter>
@@ -515,6 +517,7 @@ export default function Challenge({challengeNumber}) {
                             </SyntaxHighlighter>
                           </div>:challengeNumber==7?
                           <div>
+                            Challenge:
                             <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
                             {text}
                             </SyntaxHighlighter>
