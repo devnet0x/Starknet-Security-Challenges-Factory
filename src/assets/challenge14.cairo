@@ -35,7 +35,7 @@ mod GoodSamaritan {
             // Deploy wallet
             let mut calldata = ArrayTrait::new();
             let wallet_class_hash: ClassHash = starknet::class_hash_const::<
-                0x04218a2a7fded80545e6f27c3ae95273cddf798d6c0a10270efb6da7358e29ae
+                0x078274c350f7c4d447007b3aec9d49c3e7a2306533d8b218769e99b822d6331d
             >();
 
             let (address0, _) = deploy_syscall(wallet_class_hash, 0, calldata.span(), false)
@@ -44,7 +44,7 @@ mod GoodSamaritan {
 
             // Deploy coin
             let coin_class_hash: ClassHash = starknet::class_hash_const::<
-                0x029914d66319672a08a9406d837cf9597a726051946d7d9462fd7aae28e4210f
+                0x02fab46bd68f096d1e86a5c34fdc7d90178fe17306259c004bb7ca2628f3ae14
             >();
             calldata.append(contract_address_to_felt252(self.wallet_address.read()));
 
