@@ -1,19 +1,19 @@
 use starknet::{ContractAddress};
 
 #[starknet::interface]
-trait IChallenge7ERC20<TContractState> {
+trait ICustomERC20<TContractState> {
     fn balance_of(self: @TContractState, account: ContractAddress) -> u256;
 }
 
 #[starknet::interface]
-trait IChallenge7Real<TContractState> {
+trait IVitaTokenChallenge<TContractState> {
     fn isComplete(self: @TContractState) -> bool;
     fn get_vtoken_address(self: @TContractState) -> ContractAddress;
 }
 
 #[starknet::contract]
-mod Challenge7Real {
-    use super::{IChallenge7ERC20Dispatcher, IChallenge7ERC20DispatcherTrait};
+mod VitaTokenChallenge {
+    use super::{ICustomERC20Dispatcher, ICustomERC20DispatcherTrait};
     use starknet::syscalls::deploy_syscall;
     use starknet::{
         ContractAddress, get_contract_address, ClassHash, class_hash_to_felt252, class_hash_const
@@ -55,11 +55,11 @@ mod Challenge7Real {
     }
 
     #[abi(embed_v0)]
-    impl Challenge7Real of super::IChallenge7Real<ContractState> {
+    impl Challenge7Real of super::IVitaTokenChallenge<ContractState> {
         fn isComplete(self: @ContractState) -> bool {
             let vitalik_address = get_contract_address();
             let vtoken: ContractAddress = self.vtoken_address.read();
-            let erc20_dispatcher = IChallenge7ERC20Dispatcher { contract_address: vtoken };
+            let erc20_dispatcher = ICustomERC20Dispatcher { contract_address: vtoken };
             let current_balance = erc20_dispatcher.balance_of(vitalik_address);
             assert(current_balance == 0, 'challenge not completed yet');
 

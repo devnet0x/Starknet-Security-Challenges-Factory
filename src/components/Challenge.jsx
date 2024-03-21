@@ -525,60 +525,30 @@ export default function Challenge({ challengeNumber }) {
                 </div>
               )}
             </div>
-            <div align='justify'>
-              {challengeNumber==8?<div>
-                            Deployer:
-                            <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
-                            {text}
-                            </SyntaxHighlighter>
-                            Insecure DEX:
-                            <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
-                              {text4}
-                            </SyntaxHighlighter>
-                            ISET ERC223:
-                            <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
-                              {text2}
-                            </SyntaxHighlighter>
-                            ISEC ERC20:
-                            <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
-                              {text3}
-                            </SyntaxHighlighter>
-                          </div>:challengeNumber==14?
-                          <div>
-                            GoodSamaritan:
-                            <SyntaxHighlighter language="rust" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
-                            {text}
-                            </SyntaxHighlighter>
-                            Wallet:
-                            <SyntaxHighlighter language="rust" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
-                              {text2}
-                            </SyntaxHighlighter>
-                            Coin:
-                            <SyntaxHighlighter language="rust" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
-                              {text3}
-                            </SyntaxHighlighter>
-                          </div>:challengeNumber==7?
-                          <div>
-                            Challenge:
-                            <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
-                            {text}
-                            </SyntaxHighlighter>
-                            Custom_ERC20:
-                            <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
-                              {text2}
-                            </SyntaxHighlighter>
-                          </div>:challengeNumber>9?
-                          <div>
-                            <SyntaxHighlighter language="rust" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
-                            {text}
-                            </SyntaxHighlighter>
-                          </div>:
-                          <div>
-                          <SyntaxHighlighter language="cpp" style={monokaiSublime} customStyle={{backgroundColor: "#000000",fontSize:12}} smart-tabs='true' showLineNumbers="true">
-                          {text}
-                          </SyntaxHighlighter>
-                        </div>
-                          }
+            <div align="justify">
+              {challengeNumber === 8 ? (
+                <div>
+                  <CodeContainer text={text} title="Deployer" />
+                  <CodeContainer text={text4} title="Insecure DEX" />
+                  <CodeContainer text={text2} title="SET ERC223" />
+                  <CodeContainer text={text3} title="ISEC ERC20" />
+                </div>
+              ) : challengeNumber === 14 ? (
+                <div>
+                  <CodeContainer text={text} title="GoodSamaritan" />
+                  <CodeContainer text={text2} title="Wallet" />
+                  <CodeContainer text={text3} title="Coin" />
+                </div>
+              ) : challengeNumber === 7 ? (
+                <div>
+                  <CodeContainer text={text} title="VitaToken Challenge" />
+                  <CodeContainer text={text2} title="Custom ERC20" />
+                </div>
+              ) : (
+                <div>
+                  <CodeContainer text={text} />
+                </div>
+              )}
             </div>
             <ConnectWallet challengeNumber={challengeNumber} />
           </StarknetConfig>

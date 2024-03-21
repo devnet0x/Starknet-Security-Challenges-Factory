@@ -1,7 +1,7 @@
 use starknet::ContractAddress;
 
 #[starknet::interface]
-trait IChallenge7ERC20<TContractState> {
+trait ICustomERC20<TContractState> {
     fn balance_of(self: @TContractState, account: ContractAddress) -> u256;
     fn transfer_from(
         ref self: TContractState, sender: ContractAddress, recipient: ContractAddress, amount: u256
@@ -12,7 +12,7 @@ trait IChallenge7ERC20<TContractState> {
 }
 
 #[starknet::contract]
-mod Challenge7ERC20 {
+mod CustomERC20 {
     use core::num::traits::zero::Zero;
     use core::integer::BoundedInt;
     use starknet::{ContractAddress, get_caller_address};
@@ -51,7 +51,7 @@ mod Challenge7ERC20 {
     }
 
     #[abi(embed_v0)]
-    impl Challenge7ERC20 of super::IChallenge7ERC20<ContractState> {
+    impl CustomERC20 of super::ICustomERC20<ContractState> {
         fn balance_of(self: @ContractState, account: ContractAddress) -> u256 {
             self.ERC20_balances.read(account)
         }
