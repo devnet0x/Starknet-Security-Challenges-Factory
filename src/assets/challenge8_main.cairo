@@ -1,203 +1,179 @@
-%lang starknet
-from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.bool import FALSE, TRUE
-from starkware.starknet.common.syscalls import deploy,get_contract_address
-from starkware.cairo.common.uint256 import (Uint256,uint256_eq)
-from starkware.cairo.common.alloc import alloc
-from openzeppelin.token.erc20.IERC20 import IERC20
+use starknet::ContractAddress;
 
-// ######## Constants
-
-const TOKEN_1=1*10**18;
-const TOKEN_10=10*10**18;
-const TOKEN_100=100*10**18;
-
-// ######## Interfaces
-
-@contract_interface
-namespace IInsecureDexLP {
-    func addLiquidity(amount0 : Uint256,amount1 : Uint256) -> (liquidity : Uint256){
-    }
+#[starknet::interface]
+pub trait IInsecureDexLP<TContractState> {
+    fn add_liquidity(ref self: TContractState, amount_0: u256, amount_1: u256) -> u256;
 }
 
-@contract_interface
-namespace IATTACKER {
-    func exploit(){
-    }
+#[starknet::interface]
+pub trait IAttacker<TContractState> {
+    fn exploit(ref self: TContractState);
 }
 
-// ######## Storage vars
-
-// Define a storage variable for the salt.
-@storage_var
-func salt() -> (value: felt) {
+#[starknet::interface]
+pub trait IERC20<TContractState> {
+    fn balance_of(self: @TContractState, account: ContractAddress) -> u256;
+    fn transfer(ref self: TContractState, recipient: ContractAddress, amount: u256) -> bool;
+    fn approve(ref self: TContractState, spender: ContractAddress, amount: u256) -> bool;
 }
 
-// Define storage variables for addresses.
-@storage_var
-func isec_address() -> (value: felt) {
+#[starknet::interface]
+pub trait Challenge8Trait<TContractState> {
+    /// @dev View function to check is the challenge has been solved
+    fn isComplete(self: @TContractState) -> bool;
+
+    /// @dev Entrypoint to solve the challenge
+    fn call_exploit(ref self: TContractState, attacker_addr: ContractAddress);
+
+    /// @dev Needed to receive ERC223 tokens
+    fn token_received(
+        ref self: TContractState,
+        address: ContractAddress,
+        amount: u256,
+        calldata_len: u256,
+        calldata: Span<felt252>
+    );
+
+    /// @dev Returns the InSecurementToken contract address
+    fn get_isec_addr(self: @TContractState) -> ContractAddress;
+
+    /// @dev Returns the SimpleERC223Token contract address
+    fn get_set_addr(self: @TContractState) -> ContractAddress;
+
+    /// @dev Returns the InsecureDexLP contract address
+    fn get_dex_addr(self: @TContractState) -> ContractAddress;
 }
 
-@storage_var
-func iset_address() -> (value: felt) {
-}
+#[starknet::contract]
+mod Challenge8 {
+    use openzeppelin::utils::serde::SerializedAppend;
+    use super::Challenge8Trait;
+    use super::{IAttackerDispatcher, IAttackerDispatcherTrait};
+    use super::{IInsecureDexLPDispatcher, IInsecureDexLPDispatcherTrait};
+    use super::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use starknet::{
+        ContractAddress, ClassHash, SyscallResultTrait, get_caller_address, get_contract_address,
+        contract_address_to_felt252, class_hash_const
+    };
+    use starknet::syscalls::deploy_syscall;
 
-@storage_var
-func dex_address() -> (value: felt) {
-}
-
-// ######## Getters
-
-func get_isec_address{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> felt {
-        alloc_locals;
-        let (address)=isec_address.read();
-        return address;
-}
-
-func get_iset_address{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> felt {
-        alloc_locals;
-        let (address)=iset_address.read();
-        return address;
-}
-
-func get_dex_address{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> felt {
-        alloc_locals;
-        let (address)=dex_address.read();
-        return address;
-}
-
-
-// ######## Constructor to setup our Challenge
-@constructor
-func constructor{
-    syscall_ptr: felt*,
-    pedersen_ptr: HashBuiltin*,
-    range_check_ptr,
-}()
-{
-    alloc_locals;
-    let (deployer_address)=get_contract_address();
-    let (current_salt) = salt.read();
-    let ctor_calldata: felt* = alloc();
-
-    assert [ctor_calldata] = deployer_address;
-    assert [ctor_calldata + 1] = TOKEN_100; // Mint 100 tokens to this contract
-    
-    // Deploy ERC20 ISEC and mint 100 ISEC
-    let (address1) = deploy(
-            class_hash=0x963950860a14c82730491fb9303b9cd76a82dfb083e28ce95c12e064954f36,
-            contract_address_salt=current_salt,
-            constructor_calldata_size=2,
-            constructor_calldata=ctor_calldata,
-            deploy_from_zero=FALSE,
-        );
-    isec_address.write(address1);
-    salt.write(value=current_salt + 1);
-
-    // Deploy ERC223 ISET and mint 100 SET
-    let (address2) = deploy(
-             class_hash=0x03699b10f3fca2869c6684672cdb29721b3bbcc9123f10edf4813112a5b5b82e,
-             contract_address_salt=current_salt,
-             constructor_calldata_size=2,
-             constructor_calldata=ctor_calldata,
-             deploy_from_zero=FALSE,
-         );
-    iset_address.write(address2);
-    salt.write(value=current_salt + 1);
-
-    // Deploy DEX
-    let ctor_calldata2: felt* = alloc();
-    assert [ctor_calldata2] = get_isec_address();
-    assert [ctor_calldata2 + 1] = get_iset_address();
-    let (address3) = deploy(
-             class_hash=0x00dcc8752dbdbe0d2ad3771a9d4a438a7d8ed19294bd2bec923f0dc282ba78a0,
-             contract_address_salt=current_salt,
-             constructor_calldata_size=2,
-             constructor_calldata=ctor_calldata2,
-             deploy_from_zero=FALSE,
-         );
-    dex_address.write(address3);
-    salt.write(value=current_salt + 1);
-
-    //Add liquidity (10ISEC and 10SET)
-    IERC20.approve(contract_address = get_isec_address(),
-                   spender = get_dex_address(),
-                   amount = Uint256(TOKEN_10,0));
-    IERC20.approve(contract_address = get_iset_address(),
-                   spender = get_dex_address(),
-                   amount = Uint256(TOKEN_10,0));
-    IInsecureDexLP.addLiquidity(contract_address = get_dex_address(), 
-                                amount0 = Uint256(TOKEN_10,0),
-                                amount1 = Uint256(TOKEN_10,0));
-    
-    return ();
-}
-
-// ######## Externals
-
-@external
-func call_exploit{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    attacker_address : felt){
-    // Transfer 1 SEC to attacker's contract
-    IERC20.transfer(contract_address=get_isec_address(),
-                    recipient=attacker_address,
-                    amount=Uint256(TOKEN_1,0));
-    
-    // Transfer 1 SET to attacker's contract
-    IERC20.transfer(contract_address=get_iset_address(),
-                    recipient=attacker_address,
-                    amount=Uint256(TOKEN_1,0));
-    // Call exploit
-    IATTACKER.exploit(contract_address=attacker_address);
-
-    return();
-}
-
-@view
-func isComplete{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (output:felt) {
-    alloc_locals;
-    let (dex_isec_balance)=IERC20.balanceOf(contract_address=get_isec_address(),account=get_dex_address());
-    let (dex_iset_balance)=IERC20.balanceOf(contract_address=get_iset_address(),account=get_dex_address());
-    let zero: Uint256 = Uint256(0, 0);
-
-    let (is_dex_isec_zero) = uint256_eq(dex_isec_balance, zero);
-    let (is_dex_iset_zero) = uint256_eq(dex_iset_balance, zero);
-    with_attr error_message("Challenge not completed yet.") {
-        assert is_dex_isec_zero = TRUE;
-        assert is_dex_iset_zero = TRUE;
+    #[storage]
+    struct Storage {
+        salt: felt252,
+        isec_addr: ContractAddress,
+        set_addr: ContractAddress,
+        dex_addr: ContractAddress,
     }
 
-    return (output=TRUE,);
-}
+    #[constructor]
+    fn constructor(ref self: ContractState) {
+        let deployer: felt252 = get_contract_address().into();
+        let mut current_salt = self.salt.read();
+        let init_supply: u256 = 100_000_000_000_000_000_000;
+        let mut token_calldata = array![deployer];
+        token_calldata.append_serde(init_supply); // u256 must be properly serialized to felt252
 
-@view
-func get_isec_addr{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (output:felt) {
-        alloc_locals;
-        let (address)=isec_address.read();
-        return (output=address,);
-}
+        let isec_class_hash = class_hash_const::<
+            0x030d2d246d3f0acfd00c594a9abb6301b06e625220d4e3bb8d79ba6b15f46cc3
+        >();
+        let set_class_hash: ClassHash = class_hash_const::<
+            0x03eb194091609be4ef36e02c046b755edbd26a06ebadf00ae9bc8ab70d7da88f
+        >();
+        let dex_class_hash: ClassHash = class_hash_const::<
+            0x015877629a883a5353dfb98d63f27e2b5db7b87399646763ce3eb4852fafff6c
+        >();
 
-@view
-func get_iset_addr{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (output:felt) {
-        alloc_locals;
-        let (address)=iset_address.read();
-        return (output=address,);
-}
+        // Deploy InSecureumToken ERC20 and mint 100 $ISEC
+        let (deployed_isec_addr, _) = deploy_syscall(
+            isec_class_hash, current_salt, token_calldata.span(), false
+        )
+            .unwrap_syscall();
 
-@view
-func get_dex_addr{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (output:felt) {
-        alloc_locals;
-        let (address)=dex_address.read();
-        return (output=address,);
-}
+        self.isec_addr.write(deployed_isec_addr);
+        current_salt += 1;
+        self.salt.write(current_salt);
 
-// To receive ERC223 tokens
-@external
-func tokenReceived{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    address : felt, 
-    amount : Uint256, 
-    calldata_len : felt, 
-    calldata : felt*){
+        // Deploy SimpleERC223Token ERC223 and mint 100 $SET
+        let (deployed_set_addr, _) = deploy_syscall(
+            set_class_hash, current_salt, token_calldata.span(), false
+        )
+            .unwrap_syscall();
 
-    return();
+        self.set_addr.write(deployed_set_addr);
+        current_salt += 1;
+        self.salt.write(current_salt);
+
+        // Deploy InsecureDexLP
+        let mut dex_calldata: Array<felt252> = array![];
+        dex_calldata.append_serde(deployed_isec_addr);
+        dex_calldata.append_serde(deployed_set_addr);
+
+        let (deployed_dex_addr, _) = deploy_syscall(
+            dex_class_hash, current_salt, dex_calldata.span(), false
+        )
+            .unwrap_syscall();
+
+        self.dex_addr.write(deployed_dex_addr);
+        self.salt.write(current_salt + 1);
+
+        // Add Liquidity to the DEX (10 $ISEC & 10 $SET)
+        let init_liquidity: u256 = 10_000_000_000_000_000_000;
+        IERC20Dispatcher { contract_address: deployed_isec_addr }
+            .approve(deployed_dex_addr, init_liquidity);
+        IERC20Dispatcher { contract_address: deployed_set_addr }
+            .approve(deployed_dex_addr, init_liquidity);
+        IInsecureDexLPDispatcher { contract_address: deployed_dex_addr }
+            .add_liquidity(init_liquidity, init_liquidity);
+    }
+
+    #[abi(embed_v0)]
+    impl Challenge8Impl of Challenge8Trait<ContractState> {
+        fn isComplete(self: @ContractState) -> bool {
+            let isec = IERC20Dispatcher { contract_address: self.get_isec_addr() };
+            let set = IERC20Dispatcher { contract_address: self.get_set_addr() };
+            let dex_addr = self.get_dex_addr();
+
+            let dex_isec_balance = isec.balance_of(dex_addr);
+            let dex_set_balance = set.balance_of(dex_addr);
+
+            assert(dex_isec_balance == 0 && dex_set_balance == 0, 'Challenge not completed yet');
+            true
+        }
+
+        fn call_exploit(ref self: ContractState, attacker_addr: ContractAddress) {
+            let isec = IERC20Dispatcher { contract_address: self.get_isec_addr() };
+            let set = IERC20Dispatcher { contract_address: self.get_set_addr() };
+            let attacker = IAttackerDispatcher { contract_address: attacker_addr };
+            let init_attack_amount: u256 = 1_000_000_000_000_000_000; // 1e18
+
+            // Transfer 1 $ISEC to attacker's contract
+            isec.transfer(attacker_addr, init_attack_amount);
+
+            // Transfer 1 $SET to attacker's contract
+            set.transfer(attacker_addr, init_attack_amount);
+
+            // Call exploit
+            attacker.exploit();
+        }
+
+        fn token_received(
+            ref self: ContractState,
+            address: ContractAddress,
+            amount: u256,
+            calldata_len: u256,
+            calldata: Span<felt252>
+        ) {}
+
+        fn get_isec_addr(self: @ContractState) -> ContractAddress {
+            self.isec_addr.read()
+        }
+
+        fn get_set_addr(self: @ContractState) -> ContractAddress {
+            self.set_addr.read()
+        }
+
+        fn get_dex_addr(self: @ContractState) -> ContractAddress {
+            self.dex_addr.read()
+        }
+    }
 }

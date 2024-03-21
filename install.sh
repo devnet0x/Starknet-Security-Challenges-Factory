@@ -21,6 +21,10 @@ cairo1_challenge["challenge5"]=300
 cairo1_challenge["challenge6"]=300
 cairo1_challenge["challenge7"]=500
 cairo1_challenge["challenge7_erc20"]=0
+cairo1_challenge["challenge8_main"]=1500
+cairo1_challenge["challenge8_dex"]=0
+cairo1_challenge["challenge8_erc20"]=0
+cairo1_challenge["challenge8_erc223"]=0
 cairo1_challenge["challenge9"]=500
 cairo1_challenge["challenge10"]=700
 cairo1_challenge["challenge11"]=300
@@ -30,12 +34,7 @@ cairo1_challenge["challenge14"]=1000
 cairo1_challenge["challenge14_coin"]=0
 cairo1_challenge["challenge14_wallet"]=0
 
-declare -A cairo0_challenge
-cairo0_challenge["challenge8"]=1500
-cairo0_challenge["challenge8_dex"]=0
-cairo0_challenge["challenge8_erc20"]=0
-cairo0_challenge["challenge8_erc223"]=0
-
+# declare -A cairo0_challenge
 
 #**************************
 #* Constants (not change) *
