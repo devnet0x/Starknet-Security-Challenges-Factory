@@ -1,126 +1,114 @@
-
 // SPDX-License-Identifier: MIT
 
-%lang starknet
+use starknet::ContractAddress;
 
-from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.uint256 import Uint256
-from starkware.starknet.common.syscalls import get_caller_address
-from starkware.cairo.common.alloc import alloc
-from starkware.cairo.common.bool import TRUE, FALSE
-from openzeppelin.token.erc20.library import ERC20
+#[starknet::interface]
+pub trait IERC223<TContractState> {
+    fn token_received(
+        ref self: TContractState,
+        address: ContractAddress,
+        amount: u256,
+        calldata_len: u256,
+        calldata: Span<felt252>
+    );
+}
 
-@contract_interface
-namespace IERC223{
-    func tokenReceived(address:felt, amount:Uint256, calldata_len: felt, calldata: felt*) {
+
+// Adapted from OZ Wizard for OZ-Cairo-contracts v0.10.0 to implement ERC223
+
+#[starknet::contract]
+mod Challenge8ERC223 {
+    use super::{IERC223Dispatcher, IERC223DispatcherTrait};
+    use openzeppelin::token::erc20::ERC20Component;
+    use openzeppelin::token::erc20::interface::{IERC20, IERC20CamelOnly};
+    use starknet::{ContractAddress, get_caller_address};
+
+    component!(path: ERC20Component, storage: erc20, event: ERC20Event);
+
+    #[abi(embed_v0)]
+    impl ERC20MetadataImpl = ERC20Component::ERC20MetadataImpl<ContractState>;
+
+    impl ERC20InternalImpl = ERC20Component::InternalImpl<ContractState>;
+
+    #[storage]
+    struct Storage {
+        #[substorage(v0)]
+        erc20: ERC20Component::Storage,
     }
-}
 
-@constructor
-func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    recipient: felt,
-    minted_tokens: felt
-) {
-    ERC20.initializer('Simple ERC223 Token', 'SET', 18);
+    #[event]
+    #[derive(Drop, starknet::Event)]
+    enum Event {
+        #[flat]
+        ERC20Event: ERC20Component::Event,
+    }
 
-    ERC20._mint(recipient, Uint256(minted_tokens, 0));
-    return ();
-}
+    #[constructor]
+    fn constructor(ref self: ContractState, recipient: ContractAddress, fixed_supply: u256) {
+        self.erc20.initializer("SimpleERC223Token", "SET");
+        self.erc20._mint(recipient, fixed_supply);
+    }
 
-//
-// Getters
-//
+    #[abi(embed_v0)]
+    impl ERC223Impl of IERC20<ContractState> {
+        fn transfer(ref self: ContractState, recipient: ContractAddress, amount: u256) -> bool {
+            self.erc20.transfer(recipient, amount);
+            _after_token_transfer(ref self, recipient, amount)
+        }
 
-@view
-func name{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (name: felt) {
-    return ERC20.name();
-}
+        fn total_supply(self: @ContractState) -> u256 {
+            self.erc20.total_supply()
+        }
 
-@view
-func symbol{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (symbol: felt) {
-    return ERC20.symbol();
-}
+        fn balance_of(self: @ContractState, account: ContractAddress) -> u256 {
+            self.erc20.balance_of(account)
+        }
 
-@view
-func totalSupply{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (totalSupply: Uint256) {
-    let (totalSupply) = ERC20.total_supply();
-    return (totalSupply=totalSupply);
-}
+        fn allowance(
+            self: @ContractState, owner: ContractAddress, spender: ContractAddress
+        ) -> u256 {
+            self.erc20.allowance(owner, spender)
+        }
 
-@view
-func decimals{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (decimals: felt) {
-    return ERC20.decimals();
-}
+        fn transfer_from(
+            ref self: ContractState,
+            sender: ContractAddress,
+            recipient: ContractAddress,
+            amount: u256
+        ) -> bool {
+            self.erc20.transfer_from(sender, recipient, amount)
+        }
 
-@view
-func balanceOf{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    account: felt
-) -> (balance: Uint256) {
-    return ERC20.balance_of(account);
-}
+        fn approve(ref self: ContractState, spender: ContractAddress, amount: u256) -> bool {
+            self.erc20.approve(spender, amount)
+        }
+    }
 
-@view
-func allowance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    owner: felt, spender: felt
-) -> (remaining: Uint256) {
-    return ERC20.allowance(owner, spender);
-}
+    #[abi(embed_v0)]
+    impl ERC223CamelOnlyImpl of IERC20CamelOnly<ContractState> {
+        fn totalSupply(self: @ContractState) -> u256 {
+            self.erc20.total_supply()
+        }
 
-//
-// Externals
-//
+        fn balanceOf(self: @ContractState, account: ContractAddress) -> u256 {
+            self.erc20.balance_of(account)
+        }
 
-@external
-func transfer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    recipient: felt, amount: Uint256
-) -> (success: felt) {
-    ERC20.transfer(recipient, amount);
-    return _afterTokenTransfer(recipient, amount);
-}
+        fn transferFrom(
+            ref self: ContractState,
+            sender: ContractAddress,
+            recipient: ContractAddress,
+            amount: u256
+        ) -> bool {
+            self.erc20.transfer_from(sender, recipient, amount)
+        }
+    }
 
-@external
-func transferFrom{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    sender: felt, recipient: felt, amount: Uint256
-) -> (success: felt) {
-    return ERC20.transfer_from(sender, recipient, amount);
-}
 
-@external
-func approve{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    spender: felt, amount: Uint256
-) -> (success: felt) {
-    return ERC20.approve(spender, amount);
-}
-
-@external
-func increaseAllowance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    spender: felt, added_value: Uint256
-) -> (success: felt) {
-    return ERC20.increase_allowance(spender, added_value);
-}
-
-@external
-func decreaseAllowance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    spender: felt, subtracted_value: Uint256
-) -> (success: felt) {
-    return ERC20.decrease_allowance(spender, subtracted_value);
-}
-
-//
-// Privates ERC223
-//
-
-func _afterTokenTransfer{
-    syscall_ptr : felt*,
-    pedersen_ptr : HashBuiltin*,
-    range_check_ptr
-}(to: felt, amt: Uint256) -> (
-    success: felt){
-    alloc_locals;
-    let (sender)=get_caller_address();
-    // this is wrong and broken on many ways, but it works for this example
-    // the tokenReceived function is run if the contract has this function
-    let data: felt* = alloc();
-    IERC223.tokenReceived(contract_address=to,address=sender, amount=amt, calldata_len=0, calldata=data);
-    return (success=TRUE,);
+    fn _after_token_transfer(ref self: ContractState, to: ContractAddress, amount: u256) -> bool {
+        let sender = get_caller_address();
+        let data: Array<felt252> = array![];
+        IERC223Dispatcher { contract_address: to }.token_received(sender, amount, 0, data.span());
+        true
+    }
 }
