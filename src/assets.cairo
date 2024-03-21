@@ -8,7 +8,7 @@
 // mod challenge6;
 // mod challenge7;
 // mod challenge7_erc20;
-// mod challenge8_main;
+mod challenge8_main;
 mod challenge8_dex;
 mod challenge8_erc20;
 mod challenge8_erc223;
