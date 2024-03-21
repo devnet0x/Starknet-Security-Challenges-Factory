@@ -8,11 +8,8 @@ trait ICOIN<TContractState> {
 
 #[starknet::contract]
 mod Wallet {
-    use starknet::ContractAddress;
-    use starknet::get_caller_address;
-    use starknet::get_contract_address;
-    use super::ICOINDispatcherTrait;
-    use super::ICOINDispatcher;
+    use super::{ICOINDispatcher, ICOINDispatcherTrait};
+    use starknet::{ContractAddress, get_caller_address, get_contract_address};
 
     #[storage]
     // The owner of the wallet instance
@@ -43,12 +40,13 @@ mod Wallet {
                 contract_address: self.coin_address.read()
             }
                 .get_balance(this);
+
             if current_balance < eth_10 {
-                return false;
+                false
             } else {
                 // donate 10 coins
-                return ICOINDispatcher { contract_address: self.coin_address.read() }
-                    .transfer(dest_, eth_10);
+                ICOINDispatcher { contract_address: self.coin_address.read() }
+                    .transfer(dest_, eth_10)
             }
         }
 
@@ -79,7 +77,7 @@ mod Wallet {
 
         #[external(v0)]
         fn get_owner(self: @ContractState) -> ContractAddress {
-            return self.owner.read();
+            self.owner.read()
         }
     }
 }

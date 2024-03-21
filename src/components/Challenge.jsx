@@ -528,21 +528,21 @@ export default function Challenge({ challengeNumber }) {
             <div align="justify">
               {challengeNumber === 8 ? (
                 <div>
-                  <CodeContainer text={text} title="Insecure DEX" />
-                  <CodeContainer text={text4} title="ISET ERC223" />
-                  <CodeContainer text={text2} title="ISEC ERC20" />
+                  <CodeContainer text={text} title="Deployer" />
+                  <CodeContainer text={text4} title="Insecure DEX" />
+                  <CodeContainer text={text2} title="SET ERC223" />
                   <CodeContainer text={text3} title="ISEC ERC20" />
                 </div>
               ) : challengeNumber === 14 ? (
                 <div>
-                  <CodeContainer text={text} title="Wallet" />
-                  <CodeContainer text={text2} title="Coin" />
+                  <CodeContainer text={text} title="GoodSamaritan" />
+                  <CodeContainer text={text2} title="Wallet" />
                   <CodeContainer text={text3} title="Coin" />
                 </div>
               ) : challengeNumber === 7 ? (
                 <div>
-                  <CodeContainer text={text} title="Custom_ERC20" />
-                  <CodeContainer text={text2} title="Custom_ERC20" />
+                  <CodeContainer text={text} title="VitaToken Challenge" />
+                  <CodeContainer text={text2} title="Custom ERC20" />
                 </div>
               ) : (
                 <div>

@@ -3,6 +3,7 @@ trait IVault<TContractState> {
     fn unlock(ref self: TContractState, _password: felt252);
     fn isComplete(self: @TContractState) -> bool;
 }
+
 #[starknet::contract]
 mod Vault {
     use starknet::{contract_address_to_felt252, get_tx_info};
@@ -24,15 +25,17 @@ mod Vault {
         self.password.write(_password);
     }
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl Vault of super::IVault<ContractState> {
         fn unlock(ref self: ContractState, _password: felt252) {
             if (self.password.read() == _password) {
                 self.locked.write(false);
             }
         }
+
         fn isComplete(self: @ContractState) -> bool {
             assert(!self.locked.read(), 'challenge not resolved');
+
             true
         }
     }

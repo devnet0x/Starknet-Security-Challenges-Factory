@@ -10,6 +10,7 @@ trait IERC20<TContractState> {
 mod GuessNumber {
     use super::{IERC20Dispatcher, IERC20DispatcherTrait};
     use starknet::{get_contract_address, get_caller_address, contract_address_const};
+
     #[storage]
     struct Storage {
         is_complete: bool,
@@ -28,7 +29,8 @@ mod GuessNumber {
         #[external(v0)]
         fn isComplete(self: @ContractState) -> bool {
             let output = self.is_complete.read();
-            return (output);
+
+            output
         }
 
         #[external(v0)]
@@ -50,6 +52,7 @@ mod GuessNumber {
             let sender = get_caller_address();
             IERC20Dispatcher { contract_address: l2_token_address }
                 .transfer(recipient: sender, amount: amount);
+
             self.is_complete.write(true);
         }
     }

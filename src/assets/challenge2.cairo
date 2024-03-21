@@ -12,16 +12,16 @@ mod Callme {
         is_complete: bool,
     }
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl CallmeImpl of super::ICallmeTrait<ContractState> {
         fn isComplete(self: @ContractState) -> bool {
             let output = self.is_complete.read();
-            return (output);
+
+            output
         }
 
         fn call_me(ref self: ContractState) {
             self.is_complete.write(true);
-            return ();
         }
     }
 }

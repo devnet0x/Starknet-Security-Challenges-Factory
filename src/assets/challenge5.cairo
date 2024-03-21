@@ -30,7 +30,8 @@ mod SecretNumber {
         #[external(v0)]
         fn isComplete(self: @ContractState) -> bool {
             let output = self.is_complete.read();
-            return (output);
+
+            output
         }
 
         #[external(v0)]
@@ -43,11 +44,14 @@ mod SecretNumber {
                 .balanceOf(account: contract_address);
             let amount: u256 = 10000000000000000;
             assert(balance == amount, 'deposit required');
+
             let res = core::pedersen::pedersen(1000, n);
             assert(res == hash_result, 'Incorrect guessed number.');
+
             let sender = get_caller_address();
             IERC20Dispatcher { contract_address: l2_token_address }
                 .transfer(recipient: sender, amount: amount);
+
             self.is_complete.write(true);
         }
     }
