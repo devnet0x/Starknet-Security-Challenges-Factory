@@ -1,97 +1,37 @@
-// SPDX-License-Identifier: MIT
+// // SPDX-License-Identifier: MIT
 
-%lang starknet
+#[starknet::contract]
+mod InSecureumToken {
+    use openzeppelin::token::erc20::ERC20Component;
+    use starknet::ContractAddress;
 
-from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.uint256 import Uint256
+    component!(path: ERC20Component, storage: erc20, event: ERC20Event);
 
-from openzeppelin.token.erc20.library import ERC20
+    #[abi(embed_v0)]
+    impl ERC20MetadataImpl = ERC20Component::ERC20MetadataImpl<ContractState>;
+    #[abi(embed_v0)]
+    impl ERC20Impl = ERC20Component::ERC20Impl<ContractState>;
+    #[abi(embed_v0)]
+    impl ERC20CamelOnlyImpl = ERC20Component::ERC20CamelOnlyImpl<ContractState>;
+    impl ERC20InternalImpl = ERC20Component::InternalImpl<ContractState>;
 
-@constructor
-func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    recipient: felt,
-    minted_tokens: felt
-) {
-    ERC20.initializer('InSecureumToken', 'ISEC', 18);
+    #[storage]
+    struct Storage {
+        #[substorage(v0)]
+        erc20: ERC20Component::Storage,
+    }
 
-    ERC20._mint(recipient, Uint256(minted_tokens, 0));
-    return ();
+    #[event]
+    #[derive(Drop, starknet::Event)]
+    enum Event {
+        #[flat]
+        ERC20Event: ERC20Component::Event,
+    }
+
+    #[constructor]
+    fn constructor(ref self: ContractState, deployer: ContractAddress, supply: u256) {
+        self.erc20.initializer("InSecureumToken", "ISEC");
+        self.erc20._mint(deployer, supply);
+    }
 }
 
-//
-// Getters
-//
-
-@view
-func name{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (name: felt) {
-    return ERC20.name();
-}
-
-@view
-func symbol{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (symbol: felt) {
-    return ERC20.symbol();
-}
-
-@view
-func totalSupply{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (totalSupply: Uint256) {
-    let (totalSupply) = ERC20.total_supply();
-    return (totalSupply=totalSupply);
-}
-
-@view
-func decimals{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (decimals: felt) {
-    return ERC20.decimals();
-}
-
-@view
-func balanceOf{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    account: felt
-) -> (balance: Uint256) {
-    return ERC20.balance_of(account);
-}
-
-@view
-func allowance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    owner: felt, spender: felt
-) -> (remaining: Uint256) {
-    return ERC20.allowance(owner, spender);
-}
-
-//
-// Externals
-//
-
-@external
-func transfer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    recipient: felt, amount: Uint256
-) -> (success: felt) {
-    return ERC20.transfer(recipient, amount);
-}
-
-@external
-func transferFrom{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    sender: felt, recipient: felt, amount: Uint256
-) -> (success: felt) {
-    return ERC20.transfer_from(sender, recipient, amount);
-}
-
-@external
-func approve{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    spender: felt, amount: Uint256
-) -> (success: felt) {
-    return ERC20.approve(spender, amount);
-}
-
-@external
-func increaseAllowance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    spender: felt, added_value: Uint256
-) -> (success: felt) {
-    return ERC20.increase_allowance(spender, added_value);
-}
-
-@external
-func decreaseAllowance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    spender: felt, subtracted_value: Uint256
-) -> (success: felt) {
-    return ERC20.decrease_allowance(spender, subtracted_value);
-}

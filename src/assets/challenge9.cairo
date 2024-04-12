@@ -11,11 +11,8 @@ trait IERC20<TState> {
 
 #[starknet::contract]
 mod Fallout {
-    use starknet::ContractAddress;
-    use starknet::get_caller_address;
-    use starknet::get_contract_address;
-    use starknet::get_tx_info;
     use super::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use starknet::{ContractAddress, get_caller_address, get_contract_address, get_tx_info};
 
     // ######## Constants
 

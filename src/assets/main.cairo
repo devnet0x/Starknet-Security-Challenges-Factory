@@ -16,20 +16,17 @@ trait INFT<TContractState> {
 
 #[starknet::contract]
 mod SecurityChallenge {
-    use starknet::syscalls::deploy_syscall;
-    use core::result::ResultTrait;
-    use starknet::{ContractAddress, get_contract_address, get_caller_address};
-    use starknet::class_hash::Felt252TryIntoClassHash;
-    use core::traits::Into;
     use super::{ITestContractDispatcher, ITestContractDispatcherTrait};
     use super::{INFTDispatcher, INFTDispatcherTrait};
-    use starknet::syscalls::replace_class_syscall;
-    use starknet::contract_address_try_from_felt252;
-    use starknet::get_tx_info;
 
+    use starknet::class_hash::Felt252TryIntoClassHash;
+    use starknet::syscalls::{deploy_syscall, replace_class_syscall};
+    use starknet::{
+        ContractAddress, contract_address_try_from_felt252, get_caller_address, get_tx_info
+    };
 
     // Struct to storage players challenge status.
-    #[derive(Drop, starknet::Store, Serde)]
+    #[derive(Drop, starknet::Store)]
     struct player_challenges_struct {
         address: felt252,
         resolved: felt252,
@@ -46,7 +43,7 @@ mod SecurityChallenge {
     }
 
     // Struct to storage challenge info.
-    #[derive(Drop, starknet::Store, Serde)]
+    #[derive(Drop, starknet::Store)]
     struct challenge_struct {
         class_hash: felt252,
         points: felt252,
@@ -54,7 +51,7 @@ mod SecurityChallenge {
 
     #[storage]
     struct Storage {
-        Proxy_admin: felt252,
+        proxy_admin: felt252,
         player_challenges: LegacyMap::<(felt252, felt252), player_challenges_struct>,
         player: LegacyMap::<felt252, player_struct>,
         registered_players: LegacyMap::<felt252, player_struct>,
@@ -88,24 +85,25 @@ mod SecurityChallenge {
         res: felt252,
     }
 
-    #[constructor]
-    fn constructor(ref self: ContractState) {
-        //Set proxy admin
-        self.Proxy_admin.write(get_tx_info().unbox().account_contract_address.into());
-    }
-
-    #[external(v0)]
+    #[abi(per_item)]
     #[generate_trait]
     impl SecurityChallengeImpl of ISecurityChallenge {
+        #[constructor]
+        fn constructor(ref self: ContractState) {
+            //Set proxy admin
+            self.proxy_admin.write(get_tx_info().unbox().account_contract_address.into());
+        }
+
         // ######## External functions
 
         // Function to deploy challenges to players
+        #[external(v0)]
         fn deploy_challenge(ref self: ContractState, _challenge_number: felt252) -> felt252 {
             let sender = get_caller_address();
             let current_salt = self.salt.read();
             let current_challenge = self.challenges.read(_challenge_number);
             let class_hash = current_challenge.class_hash;
-            let ctor_calldata: Array<felt252> = ArrayTrait::new();
+            let ctor_calldata: Array<felt252> = array![];
 
             let (new_contract_address, _) = deploy_syscall(
                 class_hash.try_into().unwrap(), // class hash
@@ -127,6 +125,7 @@ mod SecurityChallenge {
         }
 
         // Function to test if challenge was completed by player
+        #[external(v0)]
         fn test_challenge(ref self: ContractState, _challenge_number: felt252) -> felt252 {
             let sender = get_caller_address();
             let current_player_challenge = self
@@ -188,6 +187,7 @@ mod SecurityChallenge {
         }
 
         // Function to mint an NFT after resolve a challenge
+        #[external(v0)]
         fn mint(ref self: ContractState, _challenge_number: felt252) {
             let sender = get_caller_address();
             let current_player_challenge = self
@@ -217,12 +217,14 @@ mod SecurityChallenge {
         }
 
         // Get player total points
+        #[external(v0)]
         fn get_points(self: @ContractState, _player: felt252) -> felt252 {
             let current_player = self.player.read(_player.into());
             current_player.points.into()
         }
 
         // Get if challenge is already completed by player
+        #[external(v0)]
         fn get_challenge_status(
             self: @ContractState, _player: felt252, _challenge_number: felt252
         ) -> felt252 {
@@ -233,6 +235,7 @@ mod SecurityChallenge {
         }
 
         // Get if challenge is already completed by player
+        #[external(v0)]
         fn get_mint_status(
             self: @ContractState, _player: felt252, _challenge_number: felt252
         ) -> felt252 {
@@ -243,12 +246,14 @@ mod SecurityChallenge {
         }
 
         // Get player nickname
+        #[external(v0)]
         fn get_nickname(self: @ContractState, _player: felt252) -> felt252 {
             let current_player = self.player.read(_player.into());
             current_player.nickname.into()
         }
 
         //Set player nickname
+        #[external(v0)]
         fn set_nickname(ref self: ContractState, _nickname: felt252) {
             let sender = get_caller_address();
             let current_player = self.player.read(sender.into());
@@ -263,6 +268,7 @@ mod SecurityChallenge {
                 address: sender.into()
             };
             self.player.write(sender.into(), player_info);
+
             let player_info = player_struct {
                 id: current_player.id,
                 nickname: _nickname,
@@ -273,14 +279,12 @@ mod SecurityChallenge {
         }
 
         // Get players ranking (not ordered)
+        #[external(v0)]
         fn get_ranking(self: @ContractState) -> Array<player_struct> {
             let total = self.player_count.read();
             let mut player_array: Array<player_struct> = ArrayTrait::new();
             let mut i = 0;
-            loop {
-                if i == total {
-                    break;
-                }
+            while i != total {
                 let current_player = self.registered_players.read(i);
                 player_array.append(current_player);
                 i = i + 1;
@@ -290,12 +294,13 @@ mod SecurityChallenge {
         }
 
         // Proxy function
+        #[external(v0)]
         fn upgrade(
             ref self: ContractState, new_class_hash: core::starknet::class_hash::ClassHash
         ) -> felt252 {
             //Only owner can access this function
             assert(
-                contract_address_try_from_felt252(self.Proxy_admin.read())
+                contract_address_try_from_felt252(self.proxy_admin.read())
                     .unwrap() == get_caller_address(),
                 'Only owner can access function.'
             );
@@ -307,11 +312,12 @@ mod SecurityChallenge {
         //
         // Getters
         //
-
+        #[external(v0)]
         fn getPlayerCount(self: @ContractState) -> felt252 {
             self.player_count.read()
         }
 
+        #[external(v0)]
         fn updateChallenge(
             ref self: ContractState,
             challenge_id: felt252,
@@ -320,7 +326,7 @@ mod SecurityChallenge {
         ) {
             //Only owner can access this function
             assert(
-                contract_address_try_from_felt252(self.Proxy_admin.read())
+                contract_address_try_from_felt252(self.proxy_admin.read())
                     .unwrap() == get_caller_address(),
                 'Only owner can access function.'
             );
@@ -329,10 +335,11 @@ mod SecurityChallenge {
             self.challenges.write(challenge_id, new_challenge);
         }
 
+        #[external(v0)]
         fn setNFTAddress(ref self: ContractState, new_nft_address: felt252) {
             //Only owner can access this function
             assert(
-                contract_address_try_from_felt252(self.Proxy_admin.read())
+                contract_address_try_from_felt252(self.proxy_admin.read())
                     .unwrap() == get_caller_address(),
                 'Only owner can access function'
             );
@@ -341,12 +348,10 @@ mod SecurityChallenge {
         }
 
         // Function to read challenge class hashes
+        #[external(v0)]
         fn get_challenge_class_hash(self: @ContractState, _challenge_number: felt252) -> felt252 {
-            let sender = get_caller_address();
-            let current_salt = self.salt.read();
             let current_challenge = self.challenges.read(_challenge_number);
             current_challenge.class_hash.into()
         }
     }
 }
-
