@@ -17,7 +17,7 @@ mod StarknetChallengeNft {
 
     #[storage]
     struct Storage {
-        proxy_admin: felt252,
+        Proxy_admin: felt252,
         token_uri_1: felt252,
         token_uri_2: felt252,
         token_uri_3: felt252,
@@ -96,7 +96,7 @@ mod StarknetChallengeNft {
             >();
             self.owner.write(contract_address_to_felt252(main_address));
             // Deployer is the admin
-            self.proxy_admin.write(get_tx_info().unbox().account_contract_address.into());
+            self.Proxy_admin.write(get_tx_info().unbox().account_contract_address.into());
         }
 
         #[external(v0)]
@@ -121,7 +121,7 @@ mod StarknetChallengeNft {
         fn transferOwnership(ref self: ContractState, newOwner: felt252) {
             //Only Admin can access this function
             assert(
-                contract_address_try_from_felt252(self.proxy_admin.read())
+                contract_address_try_from_felt252(self.Proxy_admin.read())
                     .unwrap() == get_caller_address(),
                 'Only admin can access function.'
             );
@@ -132,7 +132,7 @@ mod StarknetChallengeNft {
         fn batchMetadataUpdate(ref self: ContractState, from_token_id: u256, to_token_id: u256) {
             //Only Admin can access this function
             assert(
-                contract_address_try_from_felt252(self.proxy_admin.read())
+                contract_address_try_from_felt252(self.Proxy_admin.read())
                     .unwrap() == get_caller_address(),
                 'Only admin can access function.'
             );
@@ -146,7 +146,7 @@ mod StarknetChallengeNft {
         fn metadataUpdate(ref self: ContractState, token_id: u256) {
             //Only Admin can access this function
             assert(
-                contract_address_try_from_felt252(self.proxy_admin.read())
+                contract_address_try_from_felt252(self.Proxy_admin.read())
                     .unwrap() == get_caller_address(),
                 'Only admin can access function.'
             );
@@ -157,7 +157,7 @@ mod StarknetChallengeNft {
         fn setTokenUri(ref self: ContractState, _token_uri: Array<felt252>) {
             //Only Admin can access this function
             assert(
-                contract_address_try_from_felt252(self.proxy_admin.read())
+                contract_address_try_from_felt252(self.Proxy_admin.read())
                     .unwrap() == get_caller_address(),
                 'Only admin can access function.'
             );
@@ -278,7 +278,7 @@ mod StarknetChallengeNft {
         ) -> felt252 {
             //Only admin can access this function
             assert(
-                contract_address_try_from_felt252(self.proxy_admin.read())
+                contract_address_try_from_felt252(self.Proxy_admin.read())
                     .unwrap() == get_caller_address(),
                 'Only admin can access function.'
             );

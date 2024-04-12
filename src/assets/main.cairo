@@ -51,7 +51,7 @@ mod SecurityChallenge {
 
     #[storage]
     struct Storage {
-        proxy_admin: felt252,
+        Proxy_admin: felt252,
         player_challenges: LegacyMap::<(felt252, felt252), player_challenges_struct>,
         player: LegacyMap::<felt252, player_struct>,
         registered_players: LegacyMap::<felt252, player_struct>,
@@ -91,7 +91,7 @@ mod SecurityChallenge {
         #[constructor]
         fn constructor(ref self: ContractState) {
             //Set proxy admin
-            self.proxy_admin.write(get_tx_info().unbox().account_contract_address.into());
+            self.Proxy_admin.write(get_tx_info().unbox().account_contract_address.into());
         }
 
         // ######## External functions
@@ -300,7 +300,7 @@ mod SecurityChallenge {
         ) -> felt252 {
             //Only owner can access this function
             assert(
-                contract_address_try_from_felt252(self.proxy_admin.read())
+                contract_address_try_from_felt252(self.Proxy_admin.read())
                     .unwrap() == get_caller_address(),
                 'Only owner can access function.'
             );
@@ -326,7 +326,7 @@ mod SecurityChallenge {
         ) {
             //Only owner can access this function
             assert(
-                contract_address_try_from_felt252(self.proxy_admin.read())
+                contract_address_try_from_felt252(self.Proxy_admin.read())
                     .unwrap() == get_caller_address(),
                 'Only owner can access function.'
             );
@@ -339,7 +339,7 @@ mod SecurityChallenge {
         fn setNFTAddress(ref self: ContractState, new_nft_address: felt252) {
             //Only owner can access this function
             assert(
-                contract_address_try_from_felt252(self.proxy_admin.read())
+                contract_address_try_from_felt252(self.Proxy_admin.read())
                     .unwrap() == get_caller_address(),
                 'Only owner can access function'
             );
