@@ -43,7 +43,7 @@ mod Deployer {
 
         // Deploy ERC20 ISEC and mint 100 ISEC
         let isec_class_hash: ClassHash = starknet::class_hash_const::<
-            0x963950860a14c82730491fb9303b9cd76a82dfb083e28ce95c12e064954f36
+            0x76b1e87f023e3a55bbbce41d81de2456db37674133f1425e82205a9f08e58e2
         >();
 
         let (isec, _) = deploy_syscall(isec_class_hash, current_salt, calldata.span(), false,)
@@ -53,7 +53,7 @@ mod Deployer {
 
         // Deploy ERC223 ISET and mint 100 SET
         let set_class_hash: ClassHash = starknet::class_hash_const::<
-            0x03699b10f3fca2869c6684672cdb29721b3bbcc9123f10edf4813112a5b5b82e
+            0x5677bbc185db4ffb9511aec02803c4da1fa1bb04723ed1a7be001e33c8cf56a
         >();
 
         let (set, _) = deploy_syscall(set_class_hash, current_salt, calldata.span(), false,)
@@ -65,7 +65,7 @@ mod Deployer {
         let calldata2 = serialize_dex_calldata(@self.get_isec_address(), @self.get_set_address());
 
         let dex_class_hash: ClassHash = starknet::class_hash_const::<
-            0x00dcc8752dbdbe0d2ad3771a9d4a438a7d8ed19294bd2bec923f0dc282ba78a0
+            0x333a6fd16e0bf11ffb397abb9b1dbe45bf46de488545222d490cb42d774dd72
         >();
 
         let (dex, _) = deploy_syscall(dex_class_hash, current_salt, calldata2.span(), false,)
@@ -73,7 +73,7 @@ mod Deployer {
         self.dex_address.write(dex);
         self.salt.write(current_salt + 1);
 
-        //Add liquidity (10ISEC and 10SET)
+        //Add liquidity (10 ISEC and 10 SET)
         IERC20Dispatcher { contract_address: self.get_isec_address() }
             .approve(self.get_dex_address(), TOKEN_10);
         IERC20Dispatcher { contract_address: self.get_set_address() }
@@ -103,7 +103,7 @@ mod Deployer {
 
         // // Callback to receive ERC223 tokens
         #[external(v0)]
-        fn tokenReceived(
+        fn token_received(
             self: @ContractState,
             address: ContractAddress,
             amount: u256,

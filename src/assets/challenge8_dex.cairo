@@ -5,9 +5,9 @@
 
 #[starknet::contract]
 mod InsecureDexLP {
+    use core::traits::TryInto;
     use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
     use starknet::{ContractAddress, get_caller_address, get_contract_address};
-    use core::integer::u256_safe_div_rem;
 
     #[storage]
     struct Storage {
@@ -58,10 +58,7 @@ mod InsecureDexLP {
                 self._update_reserves();
 
                 self.total_supply.write(liquidity.into());
-
-                let curr_balance = self.balances.read(sender);
-                let new_balance = curr_balance + liquidity;
-                self.balances.write(sender, new_balance);
+                self.balances.write(sender, self.balances.read(sender) + liquidity);
 
                 liquidity
             } // @dev If liquidity exists, update shares with supplied amounts
@@ -84,12 +81,8 @@ mod InsecureDexLP {
 
                 self._update_reserves();
 
-                let new_supply: u256 = total_supply + liquidity;
-                self.total_supply.write(new_supply);
-
-                let curr_balance: u256 = self.balances.read(sender);
-                let new_balance: u256 = curr_balance + liquidity;
-                self.balances.write(sender, new_balance);
+                self.total_supply.write(self.total_supply.read() + liquidity);
+                self.balances.write(sender, self.balances.read(sender) + liquidity);
 
                 liquidity
             }
@@ -120,9 +113,9 @@ mod InsecureDexLP {
             let new_supply: u256 = total_supply - amount;
             self.total_supply.write(new_supply);
 
-            let curr_balance: u256 = self.balances.read(sender);
-            let new_balance: u256 = curr_balance - amount;
-            self.balances.write(sender, new_balance);
+            let curr_balance: felt252 = self.balances.read(sender).try_into().unwrap();
+            let new_balance: felt252 = curr_balance - amount.try_into().unwrap();
+            self.balances.write(sender, new_balance.into());
 
             self._update_reserves();
 
