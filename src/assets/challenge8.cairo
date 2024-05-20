@@ -43,7 +43,7 @@ mod Deployer {
 
         // Deploy ERC20 ISEC and mint 100 ISEC
         let isec_class_hash: ClassHash = starknet::class_hash_const::<
-            0x963950860a14c82730491fb9303b9cd76a82dfb083e28ce95c12e064954f36
+            0x00a8497d9232a1ca3f83cc7abfc04a65e5a30b9445152031a10bd84afae2f1ee
         >();
 
         let (isec, _) = deploy_syscall(isec_class_hash, current_salt, calldata.span(), false,)
@@ -53,7 +53,7 @@ mod Deployer {
 
         // Deploy ERC223 ISET and mint 100 SET
         let set_class_hash: ClassHash = starknet::class_hash_const::<
-            0x03699b10f3fca2869c6684672cdb29721b3bbcc9123f10edf4813112a5b5b82e
+            0x06e3b7cdd61ed896ad5d197164714b077a7da78654c67a9b74a2edd916513bd4
         >();
 
         let (set, _) = deploy_syscall(set_class_hash, current_salt, calldata.span(), false,)
@@ -65,7 +65,7 @@ mod Deployer {
         let calldata2 = serialize_dex_calldata(@self.get_isec_address(), @self.get_set_address());
 
         let dex_class_hash: ClassHash = starknet::class_hash_const::<
-            0x00dcc8752dbdbe0d2ad3771a9d4a438a7d8ed19294bd2bec923f0dc282ba78a0
+            0x044b9402d7d37eae047ca955fde48d292985873ec2876f7b0ab92a33c99330a8
         >();
 
         let (dex, _) = deploy_syscall(dex_class_hash, current_salt, calldata2.span(), false,)
@@ -112,7 +112,7 @@ mod Deployer {
         ) {}
 
         #[external(v0)]
-        fn call_exploit(self: @ContractState, attacker_address: ContractAddress) {
+        fn call_exploit(ref self: ContractState, attacker_address: ContractAddress) {
             // Transfer 1 SEC to attacker's contract
             IERC20Dispatcher { contract_address: self.get_isec_address() }
                 .transfer(attacker_address, TOKEN_1);
@@ -126,7 +126,7 @@ mod Deployer {
         }
 
         #[external(v0)]
-        fn is_complete(self: @ContractState) -> bool {
+        fn isComplete(self: @ContractState) -> bool {
             let dex_isec_balance = IERC20Dispatcher { contract_address: self.get_isec_address() }
                 .balance_of(self.get_dex_address());
             let dex_iset_balance = IERC20Dispatcher { contract_address: self.get_set_address() }
