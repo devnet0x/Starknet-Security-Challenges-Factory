@@ -10,6 +10,12 @@ trait IChallenge11<TContractState> {
 mod Challenge11 {
     use starknet::{ContractAddress, get_caller_address, get_tx_info};
 
+    #[storage]
+    struct Storage {
+        owner: ContractAddress,
+        is_complete: bool
+    }
+
     #[constructor]
     fn constructor(ref self: ContractState) {
         let sender = get_caller_address();
@@ -17,13 +23,7 @@ mod Challenge11 {
         self.is_complete.write(false);
     }
 
-    #[storage]
-    struct Storage {
-        owner: ContractAddress,
-        is_complete: bool
-    }
-
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl Challenge11 of super::IChallenge11<ContractState> {
         fn isComplete(self: @ContractState) -> bool {
             self.is_complete.read()
@@ -32,6 +32,7 @@ mod Challenge11 {
         fn changeOwner(ref self: ContractState, _owner: ContractAddress) {
             let tx_info = get_tx_info().unbox();
             let sender = get_caller_address();
+
             if (tx_info.account_contract_address != sender) {
                 self.owner.write(_owner);
                 self.is_complete.write(true);

@@ -1,9 +1,7 @@
 #[starknet::contract]
 mod ERC20_vulnerable {
     use core::zeroable::Zeroable;
-    use starknet::get_caller_address;
-    use starknet::contract_address_const;
-    use starknet::ContractAddress;
+    use starknet::{ContractAddress, contract_address_const, get_caller_address};
 
     #[storage]
     struct Storage {

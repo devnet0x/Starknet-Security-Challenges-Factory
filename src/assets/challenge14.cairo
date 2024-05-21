@@ -14,16 +14,12 @@ trait ICOIN<TContractState> {
 
 #[starknet::contract]
 mod GoodSamaritan {
-    use starknet::ContractAddress;
-    use super::IWALLETDispatcherTrait;
-    use super::IWALLETDispatcher;
-    use super::ICOINDispatcherTrait;
-    use super::ICOINDispatcher;
-    use starknet::syscalls::deploy_syscall;
+    use super::{ICOINDispatcher, ICOINDispatcherTrait};
+    use super::{IWALLETDispatcher, IWALLETDispatcherTrait};
+    use starknet::{ContractAddress, get_caller_address, get_contract_address};
     use starknet::class_hash::ClassHash;
-    use starknet::get_caller_address;
-    use starknet::get_contract_address;
     use starknet::contract_address::contract_address_to_felt252;
+    use starknet::syscalls::deploy_syscall;
 
     #[storage]
     struct Storage {
@@ -62,7 +58,7 @@ mod GoodSamaritan {
 
         #[external(v0)]
         fn get_addresses(self: @ContractState) -> (ContractAddress, ContractAddress) {
-            return (self.wallet_address.read(), self.coin_address.read());
+            (self.wallet_address.read(), self.coin_address.read())
         }
 
         #[external(v0)]
@@ -76,7 +72,8 @@ mod GoodSamaritan {
                     .transfer_remainder(sender);
                 enough_balance = false
             }
-            return enough_balance;
+
+            enough_balance
         }
 
         #[external(v0)]
@@ -87,7 +84,8 @@ mod GoodSamaritan {
                 .get_balance(self.wallet_address.read());
             let eth_0 = u256 { low: 0_u128, high: 0_u128 };
             assert(wallet_balance == eth_0, 'Challenge not resolved');
-            return (true);
+
+            true
         }
     }
 }

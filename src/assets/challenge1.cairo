@@ -9,10 +9,10 @@ mod Deploy {
     #[storage]
     struct Storage {}
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl DeployImpl of super::IDeployTrait<ContractState> {
         fn isComplete(self: @ContractState) -> bool {
-            return (true);
+            true
         }
     }
 }
